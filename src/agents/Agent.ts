@@ -10,6 +10,7 @@ import { VectorMemoryClient } from '../memory/VectorMemoryClient';
 import { ToolRegistry } from '../tools/ToolRegistry';
 import { ITool } from '../tools/ITool';
 import OpenAI from 'openai';
+import { AgentConfig } from './types';
 
 interface TaskError {
   message: string;
@@ -33,6 +34,7 @@ export class Agent implements IAgent {
   private middlewares: MiddlewareFunction[] = [];
   private taskQueue: Task[] = [];
   private isExecuting: boolean = false;
+  private model: AgentConfig['model'];
 
   constructor(
     id: string,
@@ -40,7 +42,8 @@ export class Agent implements IAgent {
     lore: string,
     role: string,
     goals: string[],
-    tools: ITool[] = []
+    tools: ITool[] = [],
+    model?: AgentConfig['model']
   ) {
     this.id = id;
     this.name = name;
@@ -49,6 +52,14 @@ export class Agent implements IAgent {
     this.goals = goals;
     this.shortTermMemory = {};
     this.longTermMemory = {};
+    this.tools = tools;
+    // Default model configuration if none provided
+    this.model = model || {
+      provider: 'anthropic',
+      name: 'anthropic/claude-3-sonnet-20240229',
+      temperature: 0.7,
+      maxTokens: 4096
+    };
 
     // Initialize the core LLM with proper error handling
     const openRouterKey = process.env.OPENROUTER_API_KEY;
@@ -61,13 +72,12 @@ export class Agent implements IAgent {
       apiKey: openRouterKey,
       defaultHeaders: {
         'HTTP-Referer': process.env.NEXT_PUBLIC_URL || 'http://localhost:3000',
-        'X-Title': 'ElizaOS Agent Framework',
+        'X-Title': 'Agentis Framework',
       },
     });
 
     // Initialize tools and memory
     this.toolRegistry = new ToolRegistry({ defaultTools: tools });
-    this.tools = this.toolRegistry.getTools();
     this.memoryClient = new VectorMemoryClient();
   }
 
@@ -130,7 +140,9 @@ export class Agent implements IAgent {
         IMPORTANT: Respond ONLY with the JSON object, no other text.`;
 
       const planningResponse = await this.llmClient.chat.completions.create({
-        model: 'anthropic/claude-3-opus-20240229',
+        model: this.model?.name || 'anthropic/claude-3-sonnet-20240229',
+        temperature: this.model?.temperature || 0.7,
+        max_tokens: this.model?.maxTokens || 4096,
         messages: [
           {
             role: 'system',

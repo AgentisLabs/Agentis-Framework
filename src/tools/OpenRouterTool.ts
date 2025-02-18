@@ -64,7 +64,7 @@ export class OpenRouterTool implements ITool {
                           Always maintain this identity in your responses. Never identify as Claude or any other AI.`;
 
       const completion = await this.client.chat.completions.create({
-        model: 'anthropic/claude-3-opus-20240229',
+        model: 'anthropic/claude-3-sonnet-20240229',
         messages: [
           {
             role: 'system',

@@ -16,6 +16,34 @@ export const toolSets = {
   planner: [tools.openRouter()]
 } as const;
 
+// Model configurations
+export const models = {
+  analyst: {
+    provider: 'anthropic',
+    name: 'anthropic/claude-3-opus-20240229',
+    temperature: 0.7,
+    maxTokens: 4096
+  },
+  researcher: {
+    provider: 'anthropic',
+    name: 'anthropic/claude-3-haiku-20240307',
+    temperature: 0.9,
+    maxTokens: 4096
+  },
+  planner: {
+    provider: 'anthropic',
+    name: 'anthropic/claude-3-sonnet-20240229',
+    temperature: 0.3,
+    maxTokens: 4096
+  },
+  sonnet: {
+    provider: 'anthropic',
+    name: 'anthropic/claude-3-sonnet-20240229',
+    temperature: 0.7,
+    maxTokens: 4096
+  }
+} as const;
+
 // Agent configurations
 export const agents: Record<string, AgentConfig> = {
   cryptoAnalyst: {
@@ -28,7 +56,8 @@ export const agents: Record<string, AgentConfig> = {
       'Identify trading opportunities',
       'Assess market risks'
     ],
-    tools: [...toolSets.analyst]  // Spread operator to create new array
+    tools: [...toolSets.analyst],
+    model: models.sonnet
   },
   
   marketResearcher: {
@@ -41,7 +70,8 @@ export const agents: Record<string, AgentConfig> = {
       'Analyze project fundamentals',
       'Evaluate market potential'
     ],
-    tools: [...toolSets.researcher]  // Spread operator to create new array
+    tools: [...toolSets.researcher],
+    model: models.sonnet
   },
   
   goalPlanner: {
@@ -54,7 +84,8 @@ export const agents: Record<string, AgentConfig> = {
       'Determine execution strategy',
       'Optimize agent collaboration'
     ],
-    tools: [...toolSets.planner]  // Spread operator to create new array
+    tools: [...toolSets.planner],
+    model: models.planner
   }
 };
 

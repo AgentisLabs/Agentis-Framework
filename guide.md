@@ -445,3 +445,11 @@ You can extend the Agent class or create a specialized PlannerAgent that coordin
 Concurrency & Serverless:
 In a serverless environment, each incoming message triggers a separate invocation (as seen in the API route). For handling concurrent events safely (especially for a team of 5–10 agents), you might add additional mechanisms such as row-level locks or state checks in Supabase.
 This example provides a complete, runnable skeleton of your multi-agent framework in TypeScript. Feel free to refine and expand it to fit your specific needs. Happy coding!
+
+roadmap- 
+Error Handling: Add agent-specific error handling and recovery strategies
+Learning Capabilities: Add ability to learn from interactions and improve responses
+Performance Monitoring: Add metrics collection for agent performance
+Dynamic Tool Loading: Allow runtime tool addition/removal
+Context Management: Better conversation history and context window management
+Middleware System: Expand the middleware system for more customization points

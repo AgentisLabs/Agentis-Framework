@@ -7,4 +7,10 @@ export type AgentConfig = {
   role: string;
   goals: string[];
   tools?: ITool[];
+  model?: {
+    provider: 'anthropic' | 'openai' | 'google';
+    name: string;
+    temperature?: number;
+    maxTokens?: number;
+  };
 }; 
