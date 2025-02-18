@@ -1,0 +1,11 @@
+{
+  "id": "example-agent-1",
+  "name": "ExampleAgent",
+  "lore": "Example agent configuration",
+  "role": "Example Role",
+  "goals": [
+    "Example goal 1",
+    "Example goal 2"
+  ],
+  "defaultTools": ["OpenRouterTool", "WebSearchTool"]
+} 
