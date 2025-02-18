@@ -1,4 +1,4 @@
-# Agentis Framework
+# Agentis Framework v0.1
 
 ## Current Architecture Overview
 
