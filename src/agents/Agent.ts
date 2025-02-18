@@ -50,10 +50,15 @@ export class Agent implements IAgent {
     this.shortTermMemory = {};
     this.longTermMemory = {};
 
-    // Initialize the core LLM
+    // Initialize the core LLM with proper error handling
+    const openRouterKey = process.env.OPENROUTER_API_KEY;
+    if (!openRouterKey) {
+      throw new Error('OPENROUTER_API_KEY is not set in environment variables');
+    }
+
     this.llmClient = new OpenAI({
       baseURL: 'https://openrouter.ai/api/v1',
-      apiKey: process.env.OPENROUTER_API_KEY!,
+      apiKey: openRouterKey,
       defaultHeaders: {
         'HTTP-Referer': process.env.NEXT_PUBLIC_URL || 'http://localhost:3000',
         'X-Title': 'ElizaOS Agent Framework',

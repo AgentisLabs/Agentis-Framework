@@ -5,6 +5,11 @@ import { createInterface, Interface } from 'readline';
 import { OpenRouterTool } from '../tools/OpenRouterTool';
 import { WebSearchTool } from '../tools/WebSearchTool';
 
+console.log('Environment check:', {
+  hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+  url: process.env.NEXT_PUBLIC_URL
+});
+
 async function main() {
   const runtime = new AgentRuntime();
 
