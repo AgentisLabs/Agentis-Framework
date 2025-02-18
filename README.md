@@ -1,4 +1,4 @@
-# ElizaOS Agent Framework
+# Agentis Framework
 
 ## Current Architecture Overview
 
