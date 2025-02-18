@@ -1,5 +1,3 @@
-Below is a full example of a TypeScript-based multi-agent framework that meets your requirements. This example includes a suggested directory structure, all the necessary TypeScript interfaces, classes, a Next.js API route, Supabase integration, and logging functionality. You can use this as a foundation and extend it further for your domain-specific needs.
-
 Directory Structure
 
 agent-framework/
