@@ -4,68 +4,73 @@
 
 ### Core Components
 
-1. **Agent System**
-   - Base Agent class with configurable properties (```typescript:src/agents/Agent.ts startLine: 13 endLine: 46```)
-   - Supports multiple tools, memory management, and middleware
-   - Implements message handling and task execution
-   - Currently uses OpenRouter for LLM interactions
+# Agentis Framework
 
-2. **Memory System**
-   - Vector-based memory storage using Supabase
-   - Supports both short-term and long-term memory
-   - Capable of similarity search (```typescript:src/memory/VectorMemoryClient.ts startLine: 37 endLine: 52```)
-   - 1536-dimensional vector storage for embeddings
+A TypeScript framework for building sophisticated multi-agent systems with LLM integration, specializing in crypto market analysis and research.
 
-3. **Tool System**
-   - Modular tool architecture
-   - Currently implemented tools:
-     - OpenRouterTool (Claude-3 integration)
-     - WebSearchTool (stub implementation)
-   - Tool Registry for managing tool collections
+## Features
 
-4. **Database Schema**
-   - Agents table: Stores agent configurations and metadata
-   - Messages table: Inter-agent communication history
-   - Tasks table: Task tracking and management
-   - Logs table: System-wide logging
-   - Agent_memory table: Vector-based memory storage
+- 🤖 Multi-agent Collaboration System
+  - Agent-to-agent communication
+  - Specialized agent roles (Market Research, Technical Analysis)
+  - Task sharing and delegation
 
-### Current Capabilities
+- 🧠 Advanced Memory Management
+  - Vector-based memory storage using Supabase
+  - Short-term and long-term memory systems
+  - Context-aware responses
 
-1. **Agent Operations**
-   - Message receiving and sending
-   - Basic task generation and execution
-   - Memory persistence
-   - Tool execution
-   - Logging of operations
+- 🛠️ Modular Tool Architecture
+  - WebSearchTool with Tavily API integration
+  - OpenRouterTool with Claude-3 integration
+  - Extensible tool registry system
 
-2. **Configuration**
-   - Supports configuration-based agent creation (```typescript:src/config/test-agent.ts startLine: 5 endLine: 19```)
-   - Factory pattern for agent instantiation
-   - Environment-based configuration
+- 🔄 Real-time Market Analysis
+  - Live web search capabilities
+  - Market trend analysis
+  - Fundamental and technical analysis
 
-3. **Database Operations**
-   - CRUD operations for agents
-   - Message storage
-   - Vector-based memory storage
-   - Operational logging
+- 💾 Persistent Storage
+  - Supabase integration
+  - Message history tracking
+  - Agent state persistence
+  - Vector-based memory storage
 
-### Limitations
+## Quick Start
+Coming soon
 
-1. **Tool Orchestration**
-   - Limited to sequential tool execution
-   - No complex tool chaining
-   - No parallel tool execution
 
-2. **Memory Management**
-   - Basic vector storage
-   - No automatic memory cleanup
-   - Limited context window management
+## Architecture
 
-3. **Agent Collaboration**
-   - Basic message passing
-   - No sophisticated multi-agent coordination
-   - No task sharing or delegation
+- **Agent System**: Configurable agents with specialized roles
+- **Memory System**: Vector-based storage with short/long-term memory
+- **Tool System**: Modular and easily extensible
+- **Runtime**: Manages agent lifecycle and inter-agent communication
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Security
+
+⚠️ Never commit API keys or sensitive data. Use environment variables.
+
+## License
+
+MIT License - see the [LICENSE](LICENSE) file for details
+
+## Roadmap
+
+- [ ] Add more specialized market analysis tools
+- [ ] Implement sophisticated inter-agent communication patterns
+- [ ] Add automated trading capabilities
+- [ ] Enhance memory management with better context handling
+- [ ] Add monitoring and observability features
+
 
 ### Environment Requirements
 
