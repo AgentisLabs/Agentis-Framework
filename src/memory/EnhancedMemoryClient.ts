@@ -1,7 +1,8 @@
+import { Map } from 'immutable';
 import { supabase } from '../utils/SupabaseClient';
 
-export interface MemoryEntry {
-  id?: string;
+interface MemoryEntry {
+  id: string;
   content: string;
   type: 'short_term' | 'long_term';
   context?: Record<string, any>;
@@ -10,8 +11,13 @@ export interface MemoryEntry {
 }
 
 export class EnhancedMemoryClient {
+  private shortTermMemory: Map<string, any>;
   private shortTermTTL = 1000 * 60 * 60; // 1 hour
   
+  constructor() {
+    this.shortTermMemory = Map();
+  }
+
   async saveMemory(agentId: string, entry: MemoryEntry): Promise<void> {
     if (entry.type === 'short_term') {
       // Store in-memory with TTL
@@ -31,8 +37,7 @@ export class EnhancedMemoryClient {
   }
 
   async searchSimilarMemories(agentId: string, query: string, limit = 5): Promise<MemoryEntry[]> {
-    // Implement semantic search using embeddings
-    // This would require integration with an embedding model
-    // Return combined results from both short-term and long-term memory
+    // Implementation pending embedding model integration
+    return [];
   }
 } 

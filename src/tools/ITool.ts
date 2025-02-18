@@ -7,7 +7,8 @@ export interface ToolInput {
   
   export interface ToolOutput {
     result: any;
-    [key: string]: any;
+    error?: string;
+    raw?: any;
   }
   
   export interface ITool {
