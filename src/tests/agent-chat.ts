@@ -41,41 +41,89 @@ async function main() {
 
   console.log("\n🤖 Crypto Research Team Ready!");
   console.log("Team Members:");
-  console.log("1. Market Researcher");
-  console.log("2. Technical Analyst");
-  console.log("3. Goal Planner\n");
+  console.log("1. Market Researcher (Deep Research)");
+  console.log("2. Technical Analyst (Market Analysis)");
+  console.log("3. Strategy Master (Coordination)\n");
 
   // Get user input for the research task
   const userTask = await askQuestion("Enter your research task: ");
 
-  // Research phase
+  // First, let the goal planner create a structured research plan
+  const plannerMessage: AgentMessage = {
+    id: `msg-${Date.now()}`,
+    sender_id: 'user-1',
+    recipient_id: agents[2].id, // Goal Planner
+    content: `Create a focused research plan for: ${userTask}. 
+    Break down what specific aspects the Market Researcher should investigate (tokenomics, team, technology, etc.) 
+    and what the Technical Analyst should analyze (price action, volume, market structure, etc.).`,
+    timestamp: Date.now()
+  };
+
+  console.log("\n🎯 Strategy Master creating research plan...");
+  const planningResponse = await agents[2].receiveMessage(plannerMessage);
+  
+  // Research phase with specific directives
   const researchMessage: AgentMessage = {
     id: `msg-${Date.now()}`,
-    sender_id: 'user-1',
+    sender_id: agents[2].id,
     recipient_id: agents[0].id,
-    content: userTask,
+    content: `Conduct detailed research on ${userTask}. Focus on:
+    1. Project Overview & Technology
+    2. Team Background & Credibility
+    3. Tokenomics & Distribution
+    4. Recent Developments & News
+    5. Market Position & Competitors
+    
+    Research Plan Context: ${planningResponse.content}
+    
+    Please provide specific, factual information about ${userTask}, not generic responses.`,
     timestamp: Date.now()
   };
 
-  console.log("\n🟦 User to Research Agent:", researchMessage.content);
+  console.log("\n📚 Market Researcher investigating...");
   const researchResponse = await agents[0].receiveMessage(researchMessage);
-  console.log("🤖 Research Agent:", researchResponse.content);
+  console.log("🔍 Research Findings:", researchResponse.content);
 
-  // Get user input for technical analysis focus
-  const technicalFocus = await askQuestion("\nWhat aspect would you like the Technical Analyst to focus on? ");
-
-  // Technical analysis phase
+  // Technical analysis phase with specific focus areas
   const technicalMessage: AgentMessage = {
     id: `msg-${Date.now()}`,
-    sender_id: 'user-1',
+    sender_id: agents[2].id,
     recipient_id: agents[1].id,
-    content: `Based on this research: ${researchResponse.content}\n${technicalFocus}`,
+    content: `Analyze the market metrics for ${userTask}. Focus on:
+    1. Current Price & Market Cap
+    2. Volume Analysis & Trends
+    3. Key Support/Resistance Levels
+    4. Market Structure & Patterns
+    5. Liquidity Analysis
+    
+    Research Context: ${researchResponse.content}
+    
+    Please provide specific technical analysis for ${userTask}, including concrete data points and metrics.`,
     timestamp: Date.now()
   };
 
-  console.log("\n🟦 User to Technical Agent:", technicalMessage.content);
+  console.log("\n📊 Technical Analyst processing...");
   const technicalResponse = await agents[1].receiveMessage(technicalMessage);
-  console.log("🤖 Technical Agent:", technicalResponse.content);
+  console.log("📈 Technical Analysis:", technicalResponse.content);
+
+  // Final synthesis with concrete recommendations
+  const synthesisMessage: AgentMessage = {
+    id: `msg-${Date.now()}`,
+    sender_id: 'user-1',
+    recipient_id: agents[2].id,
+    content: `Synthesize a final analysis for ${userTask}:
+    1. Summarize key findings from both research and technical analysis
+    2. Identify specific strengths and risks
+    3. Provide actionable insights and recommendations
+    
+    Research: ${researchResponse.content}
+    Technical Analysis: ${technicalResponse.content}`,
+    timestamp: Date.now()
+  };
+
+  console.log("\n🎯 Strategy Master synthesizing final insights...");
+  const finalResponse = await agents[2].receiveMessage(synthesisMessage);
+  console.log("\n🔮 Final Analysis:", finalResponse.content);
 
   // Close readline interface
   readline.close();
