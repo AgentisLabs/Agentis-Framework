@@ -38,6 +38,13 @@ A TypeScript framework for building sophisticated multi-agent systems with LLM i
 
 ## Quick Start
 Install dependencies:
+
+Clone the repository:
+```bash
+git clone https://github.com/AgentisLabs/Agentis-Framework
+```
+
+Install dependencies:
 ```bash
 npm install
 ```
