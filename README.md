@@ -37,7 +37,25 @@ A TypeScript framework for building sophisticated multi-agent systems with LLM i
   - Vector-based memory storage
 
 ## Quick Start
-Coming soon
+Install dependencies:
+```bash
+npm install
+```
+
+Push schema to supabase:
+```bash
+npx supabase db push 
+```
+Alternatively you can paste the schema.sql file into the supabase sql editor and run it from there.
+
+Run the application:
+```bash
+npm run chat
+```
+
+You can now interact with the agents by providing a topic for the agents to research.
+
+By default it is a team of 4 agents and only a web search tool is available to them. You can extend the framework by adding more agents and tools.
 
 
 ## Architecture
