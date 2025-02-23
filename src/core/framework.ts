@@ -1,14 +1,8 @@
-// Core functionality
-export * from './core';
-
-// Runtime
-export * from './runtime/AgentRuntime';
-
-// Utils
-export * from './utils/SupabaseClient';
-
-// Framework initialization
-export * from './core/framework';
+import { Agent } from '../agents/Agent';
+import { AgentConfig } from '../types/agent-config';
+import { WebSearchTool } from '../tools/WebSearchTool';
+import { OpenRouterTool } from '../tools/OpenRouterTool';
+import { AgentRuntime } from '../runtime/AgentRuntime';
 
 const testAgentConfig: AgentConfig = {
   id: 'test-agent-1',
@@ -31,6 +25,4 @@ export async function initializeFramework() {
   ));
   await runtime.start();
   return runtime;
-}
-
-export { AgentRuntime, Agent, AgentConfig }; 
+} 
