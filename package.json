@@ -1,5 +1,5 @@
 {
-  "name": "agentis-multi",
+  "name": "agentis",
   "version": "0.2.0",
   "description": "A TypeScript framework for building sophisticated multi-agent systems",
   "main": "dist/index.js",
