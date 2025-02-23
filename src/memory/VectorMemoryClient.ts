@@ -21,16 +21,39 @@ export class VectorMemoryClient {
   }
 
   async saveMemory(agentId: string, content: string, embedding?: number[]): Promise<void> {
-    if (embedding && embedding.length !== this.dimension) {
-      throw new Error(`Embedding must be of dimension ${this.dimension}`);
-    }
+    try {
+      const { error } = await supabase
+        .from('agent_memory')
+        .insert([{
+          agent_id: agentId,
+          content,
+          embedding: embedding ? embedding : null,
+          created_at: new Date().toISOString()
+        }]);
+      
+      if (error) {
+        console.error("Error saving memory:", error);
+        throw error;
+      }
 
-    const { error } = await supabase
-      .from('agent_memory')
-      .insert([{ agent_id: agentId, content, embedding }]);
-    
-    if (error) {
-      console.error("Error saving memory:", error);
+      // Also save to messages table for conversation tracking
+      const { error: msgError } = await supabase
+        .from('messages')
+        .insert([{
+          id: `msg-${Date.now()}`,
+          sender_id: agentId,
+          recipient_id: 'system',
+          content,
+          timestamp: new Date().toISOString()
+        }]);
+
+      if (msgError) {
+        console.error("Error saving message:", msgError);
+      }
+
+    } catch (error) {
+      console.error("Error in saveMemory:", error);
+      throw error;
     }
   }
 

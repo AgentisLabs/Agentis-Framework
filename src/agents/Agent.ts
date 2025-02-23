@@ -11,6 +11,7 @@ import { ToolRegistry } from '../tools/ToolRegistry';
 import { ITool } from '../tools/ITool';
 import OpenAI from 'openai';
 import { AgentConfig } from './types';
+import { EnhancedMemoryClient, MemoryType, MemoryResult } from '../memory/EnhancedMemoryClient';
 
 interface TaskError {
   message: string;
@@ -30,7 +31,7 @@ export class Agent implements IAgent {
   
   private llmClient: OpenAI;
   private toolRegistry: ToolRegistry;
-  private memoryClient: VectorMemoryClient;
+  private memoryClient: EnhancedMemoryClient;
   private middlewares: MiddlewareFunction[] = [];
   private taskQueue: Task[] = [];
   private isExecuting: boolean = false;
@@ -78,11 +79,10 @@ export class Agent implements IAgent {
 
     // Initialize tools and memory
     this.toolRegistry = new ToolRegistry({ defaultTools: tools });
-    this.memoryClient = new VectorMemoryClient();
+    this.memoryClient = new EnhancedMemoryClient();
   }
 
   async initializeMemory(): Promise<void> {
-    // First ensure agent exists in database
     const { error } = await supabase
       .from('agents')
       .upsert({
@@ -97,12 +97,10 @@ export class Agent implements IAgent {
       throw new Error(`Failed to initialize agent in database: ${error.message}`);
     }
 
-    // Load any existing memories from long-term storage
     const existingMemories = await this.memoryClient.getMemory(this.id);
     
-    // Convert memories to the expected format
-    this.longTermMemory = existingMemories.reduce((acc: AgentMemory, memory: { id: string; content: string }) => {
-      acc[memory.id] = memory.content;
+    this.longTermMemory = existingMemories.reduce((acc: AgentMemory, memory: MemoryResult) => {
+      acc[memory.id.toString()] = memory.content;
       return acc;
     }, {} as AgentMemory);
   }
@@ -111,7 +109,7 @@ export class Agent implements IAgent {
     this.middlewares.push(middleware);
   }
 
-  getMemoryClient(): VectorMemoryClient {
+  getMemoryClient(): EnhancedMemoryClient {
     return this.memoryClient;
   }
 
@@ -178,9 +176,27 @@ export class Agent implements IAgent {
         
         Please respond to: ${message.content}`;
 
+      const systemPrompt = `You are ${this.name}, a highly capable AI agent with expertise in ${this.role}. 
+${this.lore}
+
+You have access to:
+- Real-time data and analysis capabilities
+- Tavily web search for current information
+- Long-term memory storage
+
+When providing information:
+- Use Tavily web search to find current data
+- Be direct and specific
+- Make informed analyses based on available data
+- Acknowledge limitations when they exist, but don't be overly cautious
+- Current date: ${new Date().toISOString()}`;
+
       const completion = await this.llmClient.chat.completions.create({
-        model: 'anthropic/claude-3-opus-20240229',
-        messages: [{ role: 'user', content: finalPrompt }]
+        model: 'anthropic/claude-3-sonnet-20240229',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: finalPrompt }
+        ]
       });
 
       const responseContent = completion.choices[0]?.message?.content || 'I apologize, I am unable to respond at the moment.';
@@ -193,10 +209,7 @@ export class Agent implements IAgent {
         timestamp: Date.now()
       };
 
-      await this.memoryClient.saveMemory(
-        this.id,
-        `User: ${message.content}\nAgent: ${responseContent}`
-      );
+      await this.saveToMemory(message.content, responseContent);
 
       return responseMessage;
 
@@ -354,7 +367,14 @@ export class Agent implements IAgent {
     // Also store in memory for context
     await this.memoryClient.saveMemory(
       this.id,
-      `${message.sender_id}: ${message.content}`
+      {
+        content: `${message.sender_id}: ${message.content}`,
+        type: 'message',
+        metadata: {
+          sender_id: message.sender_id,
+          timestamp: message.timestamp
+        }
+      }
     );
   }
 
@@ -364,6 +384,54 @@ export class Agent implements IAgent {
     } else {
       this.longTermMemory[key] = value;
       await this.memoryClient.saveMemory(this.id, value);
+    }
+  }
+
+  async saveToMemory(message: string, response: string): Promise<void> {
+    try {
+      // Save the interaction as a message memory
+      await this.memoryClient.saveMemory(this.id, {
+        content: `User: ${message}\nAgent: ${response}`,
+        type: 'message',
+        metadata: {
+          timestamp: Date.now(),
+          interaction_type: 'user_dialogue'
+        }
+      });
+
+      // Update short term memory
+      this.shortTermMemory[`mem-${Date.now()}`] = {
+        content: `User: ${message}\nAgent: ${response}`,
+        timestamp: Date.now()
+      };
+
+      await Logger.log(this.id, LogType.STATUS_UPDATE, {
+        event: 'memory_saved',
+        messageLength: message.length,
+        responseLength: response.length
+      });
+
+    } catch (error) {
+      console.error('Error saving to memory:', error);
+      await Logger.log(this.id, LogType.ERROR, {
+        event: 'memory_save_failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  async recallRelevantMemories(query: string, type?: MemoryType): Promise<string[]> {
+    try {
+      const memories = await this.memoryClient.searchMemories(this.id, query, {
+        type,
+        limit: 5,
+        threshold: 0.8
+      });
+
+      return memories.map(mem => mem.content);
+    } catch (error) {
+      console.error('Error recalling memories:', error);
+      return [];
     }
   }
 }

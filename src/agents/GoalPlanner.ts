@@ -1,24 +1,45 @@
-import { IAgent } from './IAgent';
+import { IAgent, AgentMemory } from './IAgent';
 import { AgentMessage } from './AgentMessage';
 import { OpenRouterTool } from '../tools/OpenRouterTool';
 import { Task } from './Task';
 import { MiddlewareFunction } from '../middleware/AgentMiddleware';
-import { VectorMemoryClient } from '../memory/VectorMemoryClient';
+import { EnhancedMemoryClient } from '../memory/EnhancedMemoryClient';
 import { ToolRegistry } from '../tools/ToolRegistry';
+import { ITool } from '../tools/ITool';
 
 export class GoalPlanner implements IAgent {
-  public id = 'goal-planner-1';
-  public name = 'GoalPlanner';
-  public lore = 'I am a strategic goal planner that analyzes user requests and determines whether to create new goals or use existing context.';
-  public role = 'Goal Planning Strategist';
-  public goals = ['Optimize agent responses', 'Maintain conversation context', 'Create efficient goals'];
-  public shortTermMemory: Record<string, any> = {};
-  public longTermMemory: Record<string, any> = {};
-  public tools = [new OpenRouterTool()];
+  public id: string;
+  public name: string;
+  public lore: string;
+  public role: string;
+  public goals: string[];
+  public shortTermMemory: Record<string, any>;
+  public longTermMemory: Record<string, any>;
+  public tools: ITool[];
   
-  private memoryClient = new VectorMemoryClient();
-  private toolRegistry = new ToolRegistry({ defaultTools: this.tools });
+  private memoryClient: EnhancedMemoryClient;
+  private toolRegistry: ToolRegistry;
   private middlewares: MiddlewareFunction[] = [];
+
+  constructor(
+    id: string = 'goal-planner-1',
+    name: string = 'GoalPlanner',
+    lore: string = 'I am a strategic goal planner that analyzes user requests and determines whether to create new goals or use existing context.',
+    role: string = 'Goal Planning Strategist',
+    goals: string[] = ['Optimize agent responses', 'Maintain conversation context', 'Create efficient goals'],
+    tools: ITool[] = [new OpenRouterTool()]
+  ) {
+    this.id = id;
+    this.name = name;
+    this.lore = lore;
+    this.role = role;
+    this.goals = goals;
+    this.tools = tools;
+    this.shortTermMemory = {};
+    this.longTermMemory = {};
+    this.memoryClient = new EnhancedMemoryClient();
+    this.toolRegistry = new ToolRegistry({ defaultTools: tools });
+  }
 
   async analyzeRequest(message: string, conversationContext: string[]): Promise<{
     requiresNewGoal: boolean;
@@ -29,6 +50,9 @@ export class GoalPlanner implements IAgent {
     const tool = this.tools[0];
     
     const planningPrompt = `
+      You are a strategic goal planner with access to real-time data and analysis capabilities.
+      Current date: ${new Date().toISOString()}
+      
       Previous conversation context:
       ${conversationContext.join('\n')}
 
@@ -38,6 +62,9 @@ export class GoalPlanner implements IAgent {
       1. Requires a new research/analysis goal
       2. Can be answered using existing conversation context
       3. Is a follow-up question to previous discussion
+
+      You have the capability to analyze market data, research information, and provide concrete insights.
+      Don't be overly cautious - use your capabilities to provide meaningful analysis.
 
       Return ONLY a JSON object in this format:
       {
@@ -83,7 +110,7 @@ export class GoalPlanner implements IAgent {
     this.middlewares.push(middleware);
   }
 
-  getMemoryClient(): VectorMemoryClient {
+  getMemoryClient(): EnhancedMemoryClient {
     return this.memoryClient;
   }
 

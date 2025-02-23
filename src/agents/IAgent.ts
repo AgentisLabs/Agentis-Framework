@@ -6,6 +6,7 @@ import { ITool } from '../tools/ITool';
 import { MiddlewareFunction } from '../middleware/AgentMiddleware';
 import { VectorMemoryClient } from '../memory/VectorMemoryClient';
 import { ToolRegistry } from '../tools/ToolRegistry';
+import { EnhancedMemoryClient } from '../memory/EnhancedMemoryClient';
 
 // Define memory types for better type safety
 export interface AgentMemory {
@@ -28,6 +29,6 @@ export interface IAgent {
   sendMessage(message: AgentMessage): Promise<void>;
   initializeMemory(): Promise<void>;
   useMiddleware(middleware: MiddlewareFunction): void;
-  getMemoryClient(): VectorMemoryClient;
+  getMemoryClient(): EnhancedMemoryClient;
   getToolRegistry(): ToolRegistry;
 }
