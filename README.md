@@ -1,4 +1,4 @@
-# Agentis Framework v0.1
+# Agentis Framework v0.2
 
 ## Current Architecture Overview
 
@@ -460,4 +460,3 @@ Agents in a team can:
 - Request additional analysis
 - Coordinate on complex tasks
 - Synthesize collective insights
-

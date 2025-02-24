@@ -204,4 +204,83 @@ export class EnhancedMemoryClient {
       return [];
     }
   }
+
+  private async summarizeMemories(memories: MemoryResult[]): Promise<string> {
+    if (memories.length === 0) return "No relevant memories found.";
+    
+    try {
+      const memoryTexts = memories.map(m => m.content).join('\n');
+      const response = await this.llmClient.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [{
+          role: 'system',
+          content: 'Summarize the following memories concisely:'
+        }, {
+          role: 'user',
+          content: memoryTexts
+        }]
+      });
+
+      return response.choices[0]?.message?.content || "Failed to generate summary.";
+    } catch (error) {
+      console.error("Error summarizing memories:", error);
+      return "Error generating summary.";
+    }
+  }
+
+  private calculateConfidence(memories: MemoryResult[]): number {
+    if (memories.length === 0) return 0;
+    
+    // Simple confidence calculation based on number of memories and recency
+    const maxMemories = 10; // Arbitrary max for scaling
+    const quantityScore = Math.min(memories.length / maxMemories, 1);
+    
+    // Calculate recency score (higher for more recent memories)
+    const now = Date.now();
+    const recencyScores = memories.map(m => {
+      const age = now - new Date(m.created_at).getTime();
+      const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
+      return Math.max(0, 1 - age / maxAge);
+    });
+    const avgRecency = recencyScores.reduce((a, b) => a + b, 0) / recencyScores.length;
+    
+    // Combine scores (equal weighting)
+    return (quantityScore + avgRecency) / 2;
+  }
+
+  async getContextWindow(
+    agentId: string,
+    query: string,
+    options: {
+      timeWindow?: number;
+      relevanceThreshold?: number;
+      maxItems?: number;
+      domains?: string[];
+    } = {}
+  ): Promise<{
+    relevant: MemoryResult[];
+    context: string;
+    confidence: number;
+  }> {
+    const memories = await this.searchMemories(agentId, query, {
+      limit: options.maxItems,
+      threshold: options.relevanceThreshold
+    });
+
+    // Filter by time window if specified
+    const filteredMemories = options.timeWindow 
+      ? memories.filter(m => 
+          Date.now() - new Date(m.created_at).getTime() < (options.timeWindow ?? Infinity)
+        )
+      : memories;
+
+    // Generate context summary
+    const context = await this.summarizeMemories(filteredMemories);
+    
+    return {
+      relevant: filteredMemories,
+      context,
+      confidence: this.calculateConfidence(filteredMemories)
+    };
+  }
 } 

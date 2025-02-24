@@ -22,7 +22,8 @@
     "dev": "tsc --watch",
     "test": "jest",
     "chat": "ts-node src/tests/agent-chat.ts",
-    "market-team": "ts-node src/examples/market-team.ts"
+    "market-team": "ts-node src/examples/market-team.ts",
+    "research": "ts-node src/tests/agent-research.ts"
   },
   "keywords": [
     "ai",

@@ -23,13 +23,13 @@ export const models = {
     provider: 'anthropic',
     name: 'anthropic/claude-3.7-sonnet',
     temperature: 0.7,
-    maxTokens: 4096
+    maxTokens: 64000
   },
   researcher: {
     provider: 'anthropic',
     name: 'anthropic/claude-3.7-sonnet',
     temperature: 0.7,
-    maxTokens: 4096
+    maxTokens: 64000
   },
   analyst: {
     provider: 'anthropic',

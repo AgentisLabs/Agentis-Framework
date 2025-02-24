@@ -6,5 +6,15 @@ export interface AgentMessage {
     recipient_id: string;
     content: string;
     timestamp: number;
+    metadata?: {
+      intent?: 'query' | 'response' | 'clarification' | 'update';
+      confidence?: number;
+      sources?: string[];
+      toolsUsed?: string[];
+      context?: string;
+      domain?: string;
+    };
+    threadId?: string;
+    parentMessageId?: string;
   }
   
