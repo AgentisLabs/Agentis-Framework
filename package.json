@@ -1,6 +1,6 @@
 {
   "name": "agentis",
-  "version": "0.2.2",
+  "version": "0.2.1",
   "description": "A TypeScript framework for building sophisticated multi-agent systems",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -38,6 +38,7 @@
     "url": "https://github.com/yourusername/agentis"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.37.0",
     "@supabase/supabase-js": "^2.48.1",
     "@tavily/core": "^0.3.1",
     "dotenv": "^16.4.7",

@@ -2,6 +2,7 @@ import { AgentConfig } from '../types/agent-config';
 import { ITool } from '../tools/ITool';
 import { WebSearchTool } from '../tools/WebSearchTool';
 import { OpenRouterTool } from '../tools/OpenRouterTool';
+import { AnthropicTool } from '../tools/AnthropicTool';
 
 // Tool configurations
 export const tools = {
@@ -106,6 +107,25 @@ export const agents: Record<string, AgentConfig> = {
     ],
     tools: [...toolSets.planner],
     model: models.planner
+  },
+  
+  seniorAnalyst: {
+    id: 'senior-analyst-1',
+    name: 'SeniorAnalyst',
+    lore: 'I am an elite market analyst powered by Claude 3.7, specializing in deep market analysis and complex pattern recognition',
+    role: 'Senior Market Analyst',
+    goals: [
+      'Provide advanced market analysis',
+      'Identify complex market patterns',
+      'Generate high-confidence insights'
+    ],
+    tools: [new AnthropicTool()],
+    model: {
+      provider: 'anthropic',
+      name: 'claude-3-7-sonnet-20250219',
+      temperature: 0.7,
+      maxTokens: 4096
+    }
   }
 };
 
