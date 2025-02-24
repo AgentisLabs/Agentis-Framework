@@ -20,25 +20,25 @@ export const toolSets = {
 export const models = {
   default: {
     provider: 'anthropic',
-    name: 'anthropic/claude-3-sonnet-20240229',
+    name: 'anthropic/claude-3.7-sonnet',
     temperature: 0.7,
     maxTokens: 4096
   },
   researcher: {
     provider: 'anthropic',
-    name: 'anthropic/claude-3-sonnet-20240229',
+    name: 'anthropic/claude-3.7-sonnet',
     temperature: 0.7,
     maxTokens: 4096
   },
   analyst: {
     provider: 'anthropic',
-    name: 'anthropic/claude-3-sonnet-20240229',
+    name: 'anthropic/claude-3.7-sonnet',
     temperature: 0.7,
     maxTokens: 4096
   },
   planner: {
     provider: 'anthropic',
-    name: 'anthropic/claude-3-sonnet-20240229',
+    name: 'anthropic/claude-3.7-sonnet',
     temperature: 0.3,  // Lower temperature for more focused planning
     maxTokens: 4096
   }
