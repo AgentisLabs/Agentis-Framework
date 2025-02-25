@@ -21,7 +21,8 @@ export * from './agents/AgentMessage';
 export * from './agents/GoalPlanner';
 export * from './agents/IAgent';
 export * from './agents/Task';
-export * from './agents/types';
+// Don't export types directly due to collisions with agent-config.ts
+// export * from './agents/types';
 
 // Export tool types directly
 export * from './tools/ITool';
