@@ -60,32 +60,23 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
 2. Enable Vector extension in your Supabase database
-3. Run this SQL in your Supabase SQL editor:
+3. Run the setup_database.sql script in your Supabase SQL editor:
 
-```sql
--- Enable vector extension
-create extension if not exists vector;
-
--- Create memory entries table
-create table memory_entries (
-  id bigint primary key generated always as identity,
-  agent_id text not null,
-  content text not null,
-  type text not null,
-  metadata jsonb,
-  embedding vector(1536),
-  created_at timestamp with time zone default timezone('utc'::text, now())
-);
-
--- Create messages table
-create table messages (
-  id text primary key,
-  sender_id text not null,
-  recipient_id text not null,
-  content text not null,
-  timestamp timestamp with time zone default timezone('utc'::text, now())
-);
+```bash
+# You can find this script in the repository
+cat setup_database.sql | psql YOUR_DATABASE_URL
 ```
+
+The script creates the following tables and functions:
+
+- `agents` - Stores agent configurations
+- `messages` - Stores communication between agents
+- `memory_entries` - Vector-based memory storage
+- `tasks` - For tracking and executing tasks
+- `logs` - For tracking system events
+- `tools` - For registering available tools
+
+It also creates necessary indexes and vector search functions.
 
 ### 4. Basic Usage
 

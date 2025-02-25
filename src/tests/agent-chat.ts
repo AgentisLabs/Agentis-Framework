@@ -9,11 +9,18 @@ import { getTeam } from '../config/framework-config';
 import { IAgent } from '../agents/IAgent';
 import { EnhancedToolOrchestrator, ExecutionMode } from '../tools/EnhancedToolOrchestrator';
 import { GraphBuilder } from '../tools/GraphBuilder';
+import { ConsoleFormatter } from '../utils/ConsoleFormatter';
 
-console.log('Environment check:', {
-  hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
-  url: process.env.NEXT_PUBLIC_URL
-});
+// Print a formatted title
+console.log(ConsoleFormatter.formatTitle("Agentis Framework - Multi-Agent Chat Demo"));
+
+// Print environment information
+console.log(ConsoleFormatter.formatHeading("Environment"));
+console.log(ConsoleFormatter.formatList([
+  `OpenRouter API Key: ${!!process.env.OPENROUTER_API_KEY ? "Available" : "MISSING"}`,
+  `URL: ${process.env.NEXT_PUBLIC_URL || "Not set"}`
+]));
+console.log(ConsoleFormatter.formatSeparator());
 
 // Create readline interface for terminal input
 const readline = createInterface({
@@ -42,14 +49,16 @@ async function main() {
   
   await runtime.start();
 
-  console.log("\n🤖 Crypto Research Team Ready!");
-  console.log("Team Members:");
-  console.log("1. Market Researcher (Deep Research)");
-  console.log("2. Technical Analyst (Market Analysis)");
-  console.log("3. Strategy Master (Coordination)\n");
+  console.log(ConsoleFormatter.formatSuccess("Crypto Research Team Ready!"));
+  console.log(ConsoleFormatter.formatHeading("Team Members"));
+  console.log(ConsoleFormatter.formatList([
+    "Market Researcher (Deep Research)",
+    "Technical Analyst (Market Analysis)",
+    "Strategy Master (Coordination)"
+  ]));
 
   // Get user input for the research task
-  const userTask = await askQuestion("Enter your research task: ");
+  const userTask = await askQuestion(ConsoleFormatter.FG_YELLOW + ConsoleFormatter.BRIGHT + "Enter your research task: " + ConsoleFormatter.RESET);
 
   // First, let the goal planner create a structured research plan
   const plannerMessage: AgentMessage = {
@@ -62,8 +71,12 @@ async function main() {
     timestamp: Date.now()
   };
 
-  console.log("\n🎯 Strategy Master creating research plan...");
+  // Create a spinner for the planning phase
+  const planningSpinner = ConsoleFormatter.createSpinner("Strategy Master creating research plan");
+  planningSpinner.start();
+  
   const planningResponse = await agents[2].receiveMessage(plannerMessage);
+  planningSpinner.stop(true);
   
   // Set up the enhanced tool orchestrator for parallel research
   const researcher = agents[0];
@@ -75,7 +88,11 @@ async function main() {
   });
 
   // Create parallel research execution graph
-  console.log("\n📚 Market Researcher investigating with parallel tool execution...");
+  console.log(ConsoleFormatter.formatStatus("Market Researcher investigating with parallel tool execution"));
+  
+  // Create a progress bar for research
+  const researchProgress = ConsoleFormatter.createProgressBar(6);
+  researchProgress.update(0, "Starting research");
   
   const researchGraph = new GraphBuilder()
     // Search for different aspects in parallel
@@ -153,8 +170,21 @@ async function main() {
     .parallel(2) // Execute searches with max 2 concurrent requests
     .build();
   
-  // Execute the research graph
+  // Execute the research graph with progress updates
+  let completed = 0;
+  
+  // Add interceptor to update progress
+  const originalExecuteSingleNode = toolOrchestrator['executeSingleNode'];
+  toolOrchestrator['executeSingleNode'] = async (node, context) => {
+    researchProgress.update(completed, `Running ${node.toolName}`);
+    const result = await originalExecuteSingleNode.call(toolOrchestrator, node, context);
+    completed++;
+    researchProgress.update(completed, `Completed ${node.toolName}`);
+    return result;
+  };
+  
   const researchResults = await toolOrchestrator.executeGraph(researchGraph, researcher.id);
+  researchProgress.complete("Research data collection complete");
   
   // Get the final synthesized research
   const researchSynthesis = researchResults.get('research-synthesis')?.result || '';
@@ -174,15 +204,29 @@ async function main() {
     timestamp: Date.now()
   };
 
-  console.log("📚 Market Researcher finalizing research...");
+  // Create a spinner for finalizing research
+  const researchSpinner = ConsoleFormatter.createSpinner("Market Researcher finalizing research");
+  researchSpinner.start();
+  
   const researchResponse = await agents[0].receiveMessage(researchMessage);
-  console.log("🔍 Research Findings:", researchResponse.content);
+  researchSpinner.stop(true);
+  
+  // Display research findings
+  console.log(ConsoleFormatter.formatAgentMessage(
+    "Market Researcher", 
+    "Research Analyst", 
+    researchResponse.content
+  ));
 
   // Technical analysis with parallel data collection and analysis
   const analyst = agents[1];
   
   // Create a technical analysis execution graph
-  console.log("\n📊 Technical Analyst processing with orchestrated tools...");
+  console.log(ConsoleFormatter.formatStatus("Technical Analyst processing with orchestrated tools"));
+  
+  // Create a progress bar for technical analysis
+  const technicalProgress = ConsoleFormatter.createProgressBar(6);
+  technicalProgress.update(0, "Starting technical analysis");
   
   const technicalGraph = new GraphBuilder()
     // Get price and market cap data
@@ -264,8 +308,21 @@ async function main() {
     .parallel(3) // Execute with max 3 concurrent requests
     .build();
   
+  // Reset the counter for technical analysis progress
+  completed = 0;
+  
+  // Update the interceptor
+  toolOrchestrator['executeSingleNode'] = async (node, context) => {
+    technicalProgress.update(completed, `Running ${node.toolName}`);
+    const result = await originalExecuteSingleNode.call(toolOrchestrator, node, context);
+    completed++;
+    technicalProgress.update(completed, `Completed ${node.toolName}`);
+    return result;
+  };
+  
   // Execute the technical analysis graph
   const technicalResults = await toolOrchestrator.executeGraph(technicalGraph, analyst.id);
+  technicalProgress.complete("Technical analysis data collection complete");
   
   // Get the final synthesized technical analysis
   const technicalSynthesis = technicalResults.get('technical-synthesis')?.result || '';
@@ -285,15 +342,29 @@ async function main() {
     timestamp: Date.now()
   };
 
-  console.log("📊 Technical Analyst finalizing analysis...");
+  // Create a spinner for finalizing technical analysis
+  const technicalSpinner = ConsoleFormatter.createSpinner("Technical Analyst finalizing analysis");
+  technicalSpinner.start();
+  
   const technicalResponse = await agents[1].receiveMessage(technicalMessage);
-  console.log("📈 Technical Analysis:", technicalResponse.content);
+  technicalSpinner.stop(true);
+  
+  // Display technical analysis
+  console.log(ConsoleFormatter.formatAgentMessage(
+    "Technical Analyst",
+    "Market Analyst",
+    technicalResponse.content
+  ));
 
   // Final synthesis with orchestrated data integration and analysis
   const coordinator = agents[2];
   
   // Create a final synthesis execution graph
-  console.log("\n🎯 Strategy Master orchestrating final synthesis...");
+  console.log(ConsoleFormatter.formatStatus("Strategy Master orchestrating final synthesis"));
+  
+  // Create a progress bar for synthesis
+  const synthesisProgress = ConsoleFormatter.createProgressBar(3);
+  synthesisProgress.update(0, "Starting final synthesis");
   
   const synthesisGraph = new GraphBuilder()
     // Get sentiment analysis for additional context
@@ -348,8 +419,21 @@ async function main() {
     .sequential() // Execute in sequential order
     .build();
   
+  // Reset the counter for synthesis progress
+  completed = 0;
+  
+  // Update the interceptor again
+  toolOrchestrator['executeSingleNode'] = async (node, context) => {
+    synthesisProgress.update(completed, `Running ${node.toolName}`);
+    const result = await originalExecuteSingleNode.call(toolOrchestrator, node, context);
+    completed++;
+    synthesisProgress.update(completed, `Completed ${node.toolName}`);
+    return result;
+  };
+  
   // Execute the synthesis graph
   const synthesisResults = await toolOrchestrator.executeGraph(synthesisGraph, coordinator.id);
+  synthesisProgress.complete("Final synthesis data collection complete");
   
   // Get the final synthesized analysis
   const finalSynthesis = synthesisResults.get('final-synthesis')?.result || '';
@@ -367,10 +451,26 @@ async function main() {
     timestamp: Date.now()
   };
 
-  console.log("\n🎯 Strategy Master finalizing insights...");
+  // Create a spinner for finalizing the analysis
+  const finalSpinner = ConsoleFormatter.createSpinner("Strategy Master finalizing insights");
+  finalSpinner.start();
+  
   const finalResponse = await agents[2].receiveMessage(synthesisMessage);
-  console.log("\n🔮 Final Analysis:", finalResponse.content);
+  finalSpinner.stop(true);
+  
+  // Display the final analysis with a title
+  console.log(ConsoleFormatter.formatTitle(`Analysis Results for: ${userTask}`));
+  console.log(ConsoleFormatter.formatAgentMessage(
+    "Strategy Master",
+    "Coordinator",
+    finalResponse.content
+  ));
 
+  // Display a completion message
+  console.log(ConsoleFormatter.formatSeparator());
+  console.log(ConsoleFormatter.formatSuccess("Analysis complete"));
+  console.log(ConsoleFormatter.formatTitle("Agentis Framework"));
+  
   // Close readline interface
   readline.close();
 }

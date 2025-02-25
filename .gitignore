@@ -81,3 +81,4 @@ config.*.json
 # Local development
 *.dev.json
 local.settings.json
+schema.sql
