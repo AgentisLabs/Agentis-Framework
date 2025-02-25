@@ -23,7 +23,8 @@
     "test": "jest",
     "chat": "ts-node src/tests/agent-chat.ts",
     "market-team": "ts-node src/examples/market-team.ts",
-    "research": "ts-node src/tests/agent-research.ts"
+    "research": "ts-node src/tests/agent-research.ts",
+    "tool-orchestration": "ts-node src/tests/tool-orchestration.ts"
   },
   "keywords": [
     "ai",

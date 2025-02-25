@@ -23,6 +23,8 @@ A TypeScript framework for building sophisticated multi-agent systems with LLM i
 - 🛠️ Modular Tool Architecture
   - WebSearchTool with Tavily API integration
   - OpenRouterTool with Claude-3 integration
+  - AnthropicTool with Claude-3.7 integration
+  - Advanced tool orchestration with sequential and parallel execution
   - Extensible tool registry system
 
 - 🔄 Real-time Market Analysis
@@ -175,6 +177,7 @@ MIT License - see the [LICENSE](LICENSE) file for details
 
 ## Roadmap
 
+- [x] Add sophisticated tool orchestration system with parallel execution
 - [ ] Add more specialized market analysis tools
 - [ ] Implement sophisticated inter-agent communication patterns
 - [ ] Add automated trading capabilities

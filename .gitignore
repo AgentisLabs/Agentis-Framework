@@ -2,7 +2,7 @@
 node_modules/
 .pnp/
 .pnp.js
-
+CLAUDE.MD
 # Environment variables
 .env
 .env.local

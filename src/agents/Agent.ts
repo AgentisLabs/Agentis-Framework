@@ -12,6 +12,8 @@ import { ITool } from '../tools/ITool';
 import OpenAI from 'openai';
 import { AgentConfig } from './types';
 import { EnhancedMemoryClient, MemoryType, MemoryResult } from '../memory/EnhancedMemoryClient';
+import { EnhancedToolOrchestrator, ExecutionMode } from '../tools/EnhancedToolOrchestrator';
+import { GraphBuilder } from '../tools/GraphBuilder';
 
 interface TaskError {
   message: string;
@@ -31,6 +33,7 @@ export class Agent implements IAgent {
   
   private llmClient: OpenAI;
   private toolRegistry: ToolRegistry;
+  private toolOrchestrator: EnhancedToolOrchestrator;
   private memoryClient: EnhancedMemoryClient;
   private middlewares: MiddlewareFunction[] = [];
   private taskQueue: Task[] = [];
@@ -79,6 +82,7 @@ export class Agent implements IAgent {
 
     // Initialize tools and memory
     this.toolRegistry = new ToolRegistry({ defaultTools: tools });
+    this.toolOrchestrator = new EnhancedToolOrchestrator({ defaultTools: tools });
     this.memoryClient = new EnhancedMemoryClient();
   }
 
@@ -115,6 +119,10 @@ export class Agent implements IAgent {
 
   getToolRegistry(): ToolRegistry {
     return this.toolRegistry;
+  }
+  
+  getToolOrchestrator(): EnhancedToolOrchestrator {
+    return this.toolOrchestrator;
   }
 
   async receiveMessage(message: AgentMessage): Promise<AgentMessage> {
