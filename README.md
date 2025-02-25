@@ -293,6 +293,41 @@ export class CustomTool implements ITool {
 }
 ```
 
+### Tool Orchestration
+
+Agentis provides a sophisticated tool orchestration system for complex tool execution flows:
+
+```typescript
+import { EnhancedToolOrchestrator, GraphBuilder, ExecutionMode } from 'agentis/tools';
+
+// Create tool orchestrator
+const orchestrator = new EnhancedToolOrchestrator({
+  defaultTools: [myTool1, myTool2, myTool3]
+});
+
+// Build a parallel execution graph
+const graph = new GraphBuilder()
+  .addTool('search-1', 'WebSearchTool', 'bitcoin price', 0)
+  .addTool('search-2', 'WebSearchTool', 'ethereum price', 0)
+  // Process results of both searches
+  .addDependentTool(
+    'analysis',
+    'AnthropicTool',
+    (context) => {
+      const btcData = context.getPreviousResult('search-1')?.result || '';
+      const ethData = context.getPreviousResult('search-2')?.result || '';
+      return `Compare these prices: BTC: ${btcData}, ETH: ${ethData}`;
+    },
+    ['search-1', 'search-2'], // dependencies
+    1 // priority
+  )
+  .parallel(2) // max 2 concurrent requests
+  .build();
+
+// Execute the graph
+const results = await orchestrator.executeGraph(graph, 'my-agent-id');
+console.log(results.get('analysis')?.result);
+
 ### 2. Example: Creating a Price Feed Tool
 
 ```typescript

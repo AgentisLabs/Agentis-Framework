@@ -1,6 +1,6 @@
 {
   "name": "agentis",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A TypeScript framework for building sophisticated multi-agent systems",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,6 +14,21 @@
       "import": "./dist/core/index.js",
       "require": "./dist/core/index.js",
       "types": "./dist/core/index.d.ts"
+    },
+    "./tools": {
+      "import": "./dist/tools/index.js",
+      "require": "./dist/tools/index.js",
+      "types": "./dist/tools/index.d.ts"
+    },
+    "./agents": {
+      "import": "./dist/agents/index.js",
+      "require": "./dist/agents/index.js",
+      "types": "./dist/agents/index.d.ts"
+    },
+    "./memory": {
+      "import": "./dist/memory/index.js",
+      "require": "./dist/memory/index.js",
+      "types": "./dist/memory/index.d.ts"
     }
   },
   "scripts": {
@@ -24,7 +39,8 @@
     "chat": "ts-node src/tests/agent-chat.ts",
     "market-team": "ts-node src/examples/market-team.ts",
     "research": "ts-node src/tests/agent-research.ts",
-    "tool-orchestration": "ts-node src/tests/tool-orchestration.ts"
+    "tool-orchestration": "ts-node src/tests/tool-orchestration.ts",
+    "quickstart": "ts-node examples/quick-start.ts"
   },
   "keywords": [
     "ai",
