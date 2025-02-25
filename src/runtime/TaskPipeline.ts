@@ -1,3 +1,6 @@
+import { Task } from '../agents/Task';
+import { IAgent } from '../agents/IAgent';
+
 export class TaskPipeline {
   async executePipeline(task: Task, agents: IAgent[]): Promise<{
     results: any[];
@@ -8,12 +11,17 @@ export class TaskPipeline {
     }[];
   }> {
     const pipeline = new Map<number, IAgent[]>();
-    const results = [];
-    const metadata = [];
+    const results: any[] = [];
+    const executionMetadata: Array<{
+      agentId: string;
+      status: string;
+      duration: number;
+    }> = [];
 
     // Group agents by execution stage
     agents.forEach(agent => {
-      const stage = this.determineStage(agent, task);
+      // Default to stage 0 if determineStage not implemented
+      const stage = this.determineStage ? this.determineStage(agent, task) : 0;
       if (!pipeline.has(stage)) {
         pipeline.set(stage, []);
       }
@@ -28,27 +36,43 @@ export class TaskPipeline {
       const stageResults = await Promise.all(
         stageAgents.map(agent => 
           agent.executeTask(task)
-            .then(result => ({
-              agentId: agent.id,
-              status: 'success',
-              result
-            }))
-            .catch(error => ({
-              agentId: agent.id,
-              status: 'failed',
-              error
-            }))
+            .then((result: any) => {
+              const metadata = {
+                agentId: agent.id,
+                status: 'success',
+                duration: Date.now() - stageStart
+              };
+              executionMetadata.push(metadata);
+              return {
+                agentId: agent.id,
+                status: 'success',
+                result
+              };
+            })
+            .catch((error: any) => {
+              const metadata = {
+                agentId: agent.id,
+                status: 'failed',
+                duration: Date.now() - stageStart
+              };
+              executionMetadata.push(metadata);
+              return {
+                agentId: agent.id,
+                status: 'failed',
+                error
+              };
+            })
         )
       );
 
       results.push(...stageResults);
-      metadata.push({
-        stage,
-        duration: Date.now() - stageStart,
-        agents: stageAgents.map(a => a.id)
-      });
     }
 
-    return { results, metadata };
+    return { results, metadata: executionMetadata };
+  }
+
+  private determineStage(agent: IAgent, task: Task): number {
+    // Default implementation: all agents execute in parallel (stage 0)
+    return 0;
   }
 } 
