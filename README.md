@@ -1,10 +1,4 @@
-# Agentis Framework v0.2
-
-## Current Architecture Overview
-
-### Core Components
-
-# Agentis Framework
+# Agentis Framework v0.3
 
 A TypeScript framework for building sophisticated multi-agent systems with LLM integration, specializing in crypto market analysis and research.
 
@@ -21,8 +15,8 @@ A TypeScript framework for building sophisticated multi-agent systems with LLM i
   - Context-aware responses
 
 - 🛠️ Modular Tool Architecture
+  - Flexible LLM provider system with support for Anthropic, OpenAI, and OpenRouter
   - WebSearchTool with Tavily API integration
-  - OpenRouterTool with Claude-3 integration
   - AnthropicTool with Claude-3.7 integration
   - Advanced tool orchestration with sequential and parallel execution
   - Extensible tool registry system
@@ -51,9 +45,14 @@ npm install agentis
 Create a `.env` file in your project root:
 
 ```env
-OPENROUTER_API_KEY=your_openrouter_key
+# Required for database
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# LLM API keys (add the ones you plan to use)
+OPENROUTER_API_KEY=your_openrouter_key
+ANTHROPIC_API_KEY=your_anthropic_key
+OPENAI_API_KEY=your_openai_key
 ```
 
 ### 3. Supabase Setup
@@ -110,142 +109,139 @@ const response = await agent.receiveMessage({
 console.log(response.content);
 ```
 
-### 5. Creating a Team of Agents
+## 🔧 Available Tools & Providers
+
+### LLM Providers
+
+Agentis now supports multiple LLM providers that can be configured on a per-agent basis:
 
 ```typescript
-import { Agent, AgentRuntime, WebSearchTool, OpenRouterTool } from 'agentis';
-
-// Create specialized agents
-const researchAgent = new Agent(
-  'research-1',
-  'MarketResearcher',
-  'I gather and analyze market data',
-  'Researcher',
-  ['Gather market information'],
-  [new WebSearchTool()]
+// Example of creating agents with different LLM providers
+const anthropicAgent = new Agent(
+  'anthropic-agent',
+  'AnthropicAgent',
+  'I use Claude for precise analysis',
+  'Analysis Expert',
+  ['Analyze data', 'Provide insights'],
+  [new WebSearchTool()],
+  {
+    provider: 'anthropic',
+    name: 'claude-3-7-sonnet-20250219',
+    temperature: 0.5,
+    maxTokens: 4096
+  }
 );
 
-const strategyAgent = new Agent(
-  'strategy-1',
-  'StrategyMaster',
-  'I create trading strategies',
-  'Strategist',
-  ['Create trading strategies'],
-  [new OpenRouterTool()]
+const openaiAgent = new Agent(
+  'openai-agent',
+  'GPTAgent',
+  'I use GPT models for creative content',
+  'Creative Writer',
+  ['Generate content', 'Write copy'],
+  [new WebSearchTool()],
+  {
+    provider: 'openai',
+    name: 'gpt-4o',
+    temperature: 0.8,
+    maxTokens: 2048
+  }
 );
 
-// Initialize runtime with multiple agents
-const runtime = new AgentRuntime();
-runtime.registerAgent(researchAgent);
-runtime.registerAgent(strategyAgent);
-await runtime.start();
+const openRouterAgent = new Agent(
+  'openrouter-agent',
+  'FlexAgent',
+  'I can access multiple models through OpenRouter',
+  'Flexible Assistant',
+  ['Answer questions', 'Perform tasks'],
+  [new WebSearchTool()],
+  {
+    provider: 'openrouter',
+    name: 'anthropic/claude-3-opus-20240229',
+    temperature: 0.7,
+    maxTokens: 4096
+  }
+);
 ```
 
-## 📚 Features
+You can even provide separate API keys for each agent if needed:
 
-- 🤖 Multi-agent System
-- 🧠 Advanced Memory Management
-- 🛠️ Modular Tool Architecture
-- 🔄 Real-time Processing
-- 💾 Persistent Storage
+```typescript
+const customKeyAgent = new Agent(
+  'custom-key-agent',
+  'CustomAgent',
+  'I use a specific API key',
+  'Specialized Agent',
+  ['Custom tasks'],
+  [new WebSearchTool()],
+  {
+    provider: 'anthropic',
+    name: 'claude-3-7-sonnet-20250219',
+    apiKey: 'your-specific-api-key'
+  }
+);
+```
 
-## 🔧 Available Tools
+### Available Tools
 
 - `WebSearchTool`: Real-time web search capabilities
-- `OpenRouterTool`: LLM integration via OpenRouter
+- `AnthropicTool`: Direct access to Claude models
+- `OpenRouterTool`: Access to various LLMs via OpenRouter
 
-## 📖 Documentation
+## 📚 Creating Multi-Agent Research Teams
 
-For more detailed documentation, visit [our documentation site](https://docs.agentis.dev)
+Agentis excels at creating specialized agent teams that can collaborate on complex tasks:
 
-## 🤝 Contributing
+```typescript
+// Create a research team with specialized roles
+const researchTeam = {
+  // Coordinator using Anthropic's Claude
+  coordinator: new Agent(
+    'research-coordinator',
+    'ResearchCoordinator',
+    'I plan research and synthesize findings',
+    'Research Coordinator',
+    ['Plan research', 'Synthesize findings'],
+    [new AnthropicTool()],
+    { provider: 'anthropic', name: 'claude-3-7-sonnet-20250219' }
+  ),
+  
+  // Web researcher using OpenAI
+  webResearcher: new Agent(
+    'web-researcher',
+    'WebResearcher',
+    'I gather information from online sources',
+    'Web Research Specialist',
+    ['Find information', 'Verify facts'],
+    [new WebSearchTool()],
+    { provider: 'openai', name: 'gpt-4o' }
+  ),
+  
+  // Analyst using OpenRouter
+  analyst: new Agent(
+    'analyst',
+    'DataAnalyst',
+    'I analyze findings and identify patterns',
+    'Analysis Specialist',
+    ['Analyze data', 'Identify patterns'],
+    [new AnthropicTool()],
+    { provider: 'openrouter', name: 'anthropic/claude-3-opus-20240229' }
+  )
+};
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md).
-
-## 📝 License
-
-MIT License - see the [LICENSE](LICENSE) file for details
-
-## Roadmap
-
-- [x] Add sophisticated tool orchestration system with parallel execution
-- [ ] Add more specialized market analysis tools
-- [ ] Implement sophisticated inter-agent communication patterns
-- [ ] Add automated trading capabilities
-- [ ] Enhance memory management with better context handling
-- [ ] Add monitoring and observability features
-
-
-### Environment Requirements
-
-- Supabase project with vector extension
-- OpenRouter API key
-- Node.js environment
-- TypeScript support
+// Initialize runtime with the team
+const runtime = new AgentRuntime();
+Object.values(researchTeam).forEach(agent => runtime.registerAgent(agent));
+await runtime.start();
+```
 
 ## 🎯 Creating Custom Agents
 
 Users can fully customize their agents' personalities, roles, and capabilities:
 
 ```typescript
-import { Agent, WebSearchTool, OpenRouterTool } from 'agentis';
+import { Agent, WebSearchTool } from 'agentis';
 
-// Crypto Trading Specialist
-const tradingAgent = new Agent(
-  'trader-1',
-  'CryptoTrader',
-  'I am an experienced crypto trader specializing in technical analysis. I focus on identifying trading opportunities using multiple timeframe analysis.',
-  'Trading Specialist',
-  [
-    'Analyze trading patterns',
-    'Identify entry and exit points',
-    'Monitor market sentiment'
-  ],
-  [new WebSearchTool(), new OpenRouterTool()]
-);
-
-// Market Research Analyst
-const researchAgent = new Agent(
-  'research-1',
-  'MarketResearcher',
-  'I specialize in fundamental analysis and market research. I analyze project fundamentals, team backgrounds, and market dynamics.',
-  'Research Analyst',
-  [
-    'Research project fundamentals',
-    'Analyze team credentials',
-    'Track market developments'
-  ],
-  [new WebSearchTool()]
-);
-
-// News Sentiment Analyzer
-const sentimentAgent = new Agent(
-  'sentiment-1',
-  'SentimentAnalyst',
-  'I track and analyze market sentiment across social media, news, and trading platforms. I identify shifts in market psychology.',
-  'Sentiment Analyst',
-  [
-    'Monitor social media sentiment',
-    'Track news impact',
-    'Analyze market psychology'
-  ],
-  [new WebSearchTool(), new OpenRouterTool()]
-);
-```
-
-### Agent Configuration Options
-
-Each agent can be customized with:
-
-- **id**: Unique identifier for the agent
-- **name**: Display name
-- **lore**: Personality and background description that shapes the agent's responses
-- **role**: Professional role that defines the agent's expertise
-- **goals**: Array of specific objectives the agent works to achieve
-- **tools**: Array of tools the agent can use (WebSearchTool, OpenRouterTool, etc.)
-- **model** (optional): LLM model configuration
-```typescript
-// Optional model configuration
+// Basic agent creation with model configuration
 const agent = new Agent(
   'custom-agent',
   'CustomAgent',
@@ -255,9 +251,10 @@ const agent = new Agent(
   [new WebSearchTool()],
   {
     provider: 'anthropic',
-    name: 'anthropic/claude-3-sonnet-20240229',
+    name: 'claude-3-7-sonnet-20250219',
     temperature: 0.7,
-    maxTokens: 4096
+    maxTokens: 4096,
+    apiKey: 'your-optional-custom-key' // Optional: provide a specific API key
   }
 );
 ```
@@ -265,8 +262,6 @@ const agent = new Agent(
 ## 🛠️ Creating Custom Tools
 
 Agents can be enhanced with custom tools. Here's how to create your own:
-
-### 1. Basic Tool Structure
 
 ```typescript
 import { ITool, ToolOutput } from 'agentis';
@@ -289,7 +284,7 @@ export class CustomTool implements ITool {
 Agentis provides a sophisticated tool orchestration system for complex tool execution flows:
 
 ```typescript
-import { EnhancedToolOrchestrator, GraphBuilder, ExecutionMode } from 'agentis/tools';
+import { EnhancedToolOrchestrator, GraphBuilder } from 'agentis/tools';
 
 // Create tool orchestrator
 const orchestrator = new EnhancedToolOrchestrator({
@@ -318,174 +313,34 @@ const graph = new GraphBuilder()
 // Execute the graph
 const results = await orchestrator.executeGraph(graph, 'my-agent-id');
 console.log(results.get('analysis')?.result);
-
-### 2. Example: Creating a Price Feed Tool
-
-```typescript
-import { ITool, ToolOutput } from 'agentis';
-
-export class PriceFeedTool implements ITool {
-  name = 'PriceFeedTool';
-  description = 'Fetches real-time crypto prices';
-
-  async execute(input: string): Promise<ToolOutput> {
-    const symbol = input.toUpperCase();
-    const response = await fetch(`https://api.example.com/price/${symbol}`);
-    const data = await response.json();
-    
-    return {
-      result: data.price,
-      metadata: {
-        timestamp: Date.now(),
-        symbol: symbol,
-        source: 'ExampleAPI'
-      }
-    };
-  }
-}
 ```
 
-### 3. Using Custom Tools
+## 📖 Documentation
 
-```typescript
-import { Agent, PriceFeedTool } from 'agentis';
+For more detailed documentation, visit [our documentation site](https://docs.agentis.dev)
 
-const agent = new Agent(
-  'price-tracker-1',
-  'PriceTracker',
-  'I track and analyze crypto prices',
-  'Price Analyst',
-  ['Monitor price movements'],
-  [new PriceFeedTool()]
-);
-```
+## 🤝 Contributing
 
-### 4. Best Practices
+Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md).
 
-- **Error Handling**: Always include proper error handling in your tool
-- **Rate Limiting**: Implement rate limiting if calling external APIs
-- **Caching**: Consider caching results for frequently used queries
-- **Typing**: Use TypeScript interfaces for structured inputs/outputs
-- **Documentation**: Document expected inputs and output formats
+## 📝 License
 
-### 5. Advanced Tool Features
+MIT License - see the [LICENSE](LICENSE) file for details
 
-Tools can implement additional optional methods:
+## Roadmap
 
-```typescript
-import { ITool, ToolOutput } from 'agentis';
+- [x] Add sophisticated tool orchestration system with parallel execution
+- [x] Add flexible LLM provider system (Anthropic, OpenAI, OpenRouter)
+- [ ] Implement ReAct reasoning for enhanced agent capabilities
+- [ ] Add more specialized market analysis tools
+- [ ] Implement sophisticated inter-agent communication patterns
+- [ ] Add automated trading capabilities
+- [ ] Enhance memory management with better context handling
+- [ ] Add monitoring and observability features
 
-export class AdvancedTool implements ITool {
-  name = 'AdvancedTool';
-  description = 'An advanced tool example';
+## Environment Requirements
 
-  // Optional initialization
-  async initialize(): Promise<void> {
-    // Setup code
-  }
-
-  // Main execution method
-  async execute(input: string): Promise<ToolOutput> {
-    return { result: 'processed data' };
-  }
-
-  // Optional cleanup
-  async cleanup(): Promise<void> {
-    // Cleanup code
-  }
-
-  // Optional validation
-  validateInput(input: string): boolean {
-    return input.length > 0;
-  }
-}
-```
-
-### 6. Registering Tools Globally
-
-```typescript
-import { ToolRegistry } from 'agentis';
-
-// Register tool for all agents to use
-ToolRegistry.registerTool('CustomTool', new CustomTool());
-
-// Create agent with access to all registered tools
-const agent = new Agent(
-  'agent-1',
-  'Agent',
-  'Agent description',
-  'Role',
-  ['Goals'],
-  ToolRegistry.getTools()
-);
-```
-
-## 🤝 Team Composition
-
-Agentis is designed for multi-agent collaboration. Agents can work together in specialized teams:
-
-```typescript
-import { Agent, AgentRuntime, WebSearchTool, OpenRouterTool } from 'agentis';
-
-// Create a crypto research team
-const researchTeam = {
-  // Research Specialist
-  researcher: new Agent(
-    'researcher-1',
-    'ResearchSpecialist',
-    'I conduct deep research into crypto projects, analyzing fundamentals, tokenomics, and team backgrounds',
-    'Research Analyst',
-    ['Research project fundamentals', 'Analyze tokenomics'],
-    [new WebSearchTool()]
-  ),
-
-  // Technical Analyst
-  analyst: new Agent(
-    'analyst-1',
-    'TechnicalAnalyst',
-    'I analyze market structures, price action, and technical indicators',
-    'Technical Analyst',
-    ['Analyze price trends', 'Identify technical patterns'],
-    [new WebSearchTool(), new OpenRouterTool()]
-  ),
-
-  // Strategy Coordinator
-  coordinator: new Agent(
-    'coordinator-1',
-    'StrategyMaster',
-    'I coordinate research efforts and synthesize findings into actionable strategies',
-    'Strategy Coordinator',
-    ['Coordinate research', 'Synthesize findings'],
-    [new OpenRouterTool()]
-  )
-};
-
-// Initialize runtime with the team
-const runtime = new AgentRuntime();
-Object.values(researchTeam).forEach(agent => runtime.registerAgent(agent));
-await runtime.start();
-
-// Team can now collaborate on tasks
-const response = await researchTeam.coordinator.receiveMessage({
-  id: `msg-${Date.now()}`,
-  sender_id: 'user',
-  recipient_id: researchTeam.coordinator.id,
-  content: 'Analyze Bitcoin\'s current market position',
-  timestamp: Date.now()
-});
-```
-
-### Team Benefits
-
-- **Specialized Expertise**: Each agent focuses on specific aspects of analysis
-- **Collaborative Intelligence**: Agents share findings and build on each other's work
-- **Coordinated Research**: Strategy agents can delegate and synthesize research tasks
-- **Scalable Analysis**: Teams can handle complex research tasks through division of labor
-
-### Team Communication
-
-Agents in a team can:
-- Share research findings
-- Request additional analysis
-- Coordinate on complex tasks
-- Synthesize collective insights
+- Supabase project with vector extension
+- Node.js environment
+- TypeScript support
+- API keys for LLM providers you plan to use

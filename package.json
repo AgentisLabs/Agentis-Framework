@@ -50,7 +50,9 @@
     "market-team": "ts-node src/examples/market-team.ts",
     "research": "ts-node src/tests/agent-research.ts",
     "tool-orchestration": "ts-node src/tests/tool-orchestration.ts",
-    "quickstart": "ts-node examples/quick-start.ts"
+    "quickstart": "ts-node examples/quick-start.ts",
+    "providers": "ts-node examples/provider-specific-agents.ts",
+    "research-team": "ts-node examples/research-team.ts"
   },
   "keywords": [
     "ai",

@@ -6,10 +6,11 @@ export type AgentConfig = {
   goals: string[];
   tools?: any[];
   model?: {
-    provider: 'anthropic' | 'openai' | 'google',
+    provider: 'anthropic' | 'openai' | 'openrouter' | 'google',
     name: string,
     temperature?: number,
-    maxTokens?: number
+    maxTokens?: number,
+    apiKey?: string
   };
-  // Remove crypto-specific config, let users add their own in JSON
+  // Additional custom settings can be added by users
 }; 

@@ -9,11 +9,12 @@ import { MiddlewareFunction } from '../middleware/AgentMiddleware';
 import { VectorMemoryClient } from '../memory/VectorMemoryClient';
 import { ToolRegistry } from '../tools/ToolRegistry';
 import { ITool } from '../tools/ITool';
-import OpenAI from 'openai';
 import { AgentConfig } from './types';
 import { EnhancedMemoryClient, MemoryType, MemoryResult } from '../memory/EnhancedMemoryClient';
 import { EnhancedToolOrchestrator, ExecutionMode } from '../tools/EnhancedToolOrchestrator';
 import { GraphBuilder } from '../tools/GraphBuilder';
+import { LLMService } from '../tools/LLMService';
+import { LLMMessage } from '../tools/providers/ILLMProvider';
 
 interface TaskError {
   message: string;
@@ -31,7 +32,7 @@ export class Agent implements IAgent {
   public longTermMemory: AgentMemory;
   public tools: ITool[];
   
-  private llmClient: OpenAI;
+  private llmService: LLMService;
   private toolRegistry: ToolRegistry;
   private toolOrchestrator: EnhancedToolOrchestrator;
   private memoryClient: EnhancedMemoryClient;
@@ -60,24 +61,18 @@ export class Agent implements IAgent {
     // Default model configuration if none provided
     this.model = model || {
       provider: 'anthropic',
-      name: 'anthropic/claude-3-sonnet-20240229',
+      name: 'claude-3-7-sonnet-20250219',
       temperature: 0.7,
       maxTokens: 4096
     };
 
-    // Initialize the core LLM with proper error handling
-    const openRouterKey = process.env.OPENROUTER_API_KEY;
-    if (!openRouterKey) {
-      throw new Error('OPENROUTER_API_KEY is not set in environment variables');
-    }
-
-    this.llmClient = new OpenAI({
-      baseURL: 'https://openrouter.ai/api/v1',
-      apiKey: openRouterKey,
-      defaultHeaders: {
-        'HTTP-Referer': process.env.NEXT_PUBLIC_URL || 'http://localhost:3000',
-        'X-Title': 'Agentis Framework',
-      },
+    // Initialize the LLM service with the selected provider
+    this.llmService = new LLMService({
+      provider: this.model.provider,
+      model: this.model.name,
+      temperature: this.model.temperature,
+      maxTokens: this.model.maxTokens,
+      apiKey: this.model.apiKey
     });
 
     // Initialize tools and memory
@@ -145,27 +140,25 @@ export class Agent implements IAgent {
         
         IMPORTANT: Respond ONLY with the JSON object, no other text.`;
 
-      const planningResponse = await this.llmClient.chat.completions.create({
-        model: this.model?.name || 'anthropic/claude-3-sonnet-20240229',
-        temperature: this.model?.temperature || 0.7,
-        max_tokens: this.model?.maxTokens || 4096,
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a JSON formatting assistant. Always respond with valid JSON only.'
-          },
-          {
-            role: 'user',
-            content: toolPlanningPrompt
-          }
-        ]
-      });
+      // Initialize the LLM service if needed
+      await this.llmService.initialize();
+      
+      const planningResponse = await this.llmService.generateResponse([
+        {
+          role: 'system',
+          content: 'You are a JSON formatting assistant. Always respond with valid JSON only.'
+        },
+        {
+          role: 'user',
+          content: toolPlanningPrompt
+        }
+      ]);
 
       let plan;
       try {
-        plan = JSON.parse(planningResponse.choices[0]?.message?.content?.trim() || '{}');
+        plan = JSON.parse(planningResponse.content.trim() || '{}');
       } catch (e) {
-        console.error('Failed to parse planning response:', planningResponse.choices[0]?.message?.content);
+        console.error('Failed to parse planning response:', planningResponse.content);
         plan = { useTool: true, toolName: 'WebSearchTool', reason: 'Fallback to web search due to parsing error' };
       }
 
@@ -199,15 +192,12 @@ When providing information:
 - Acknowledge limitations when they exist, but don't be overly cautious
 - Current date: ${new Date().toISOString()}`;
 
-      const completion = await this.llmClient.chat.completions.create({
-        model: 'anthropic/claude-3-sonnet-20240229',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: finalPrompt }
-        ]
-      });
+      const completion = await this.llmService.generateResponse([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: finalPrompt }
+      ]);
 
-      const responseContent = completion.choices[0]?.message?.content || 'I apologize, I am unable to respond at the moment.';
+      const responseContent = completion.content || 'I apologize, I am unable to respond at the moment.';
 
       const responseMessage: AgentMessage = {
         id: `msg-${Date.now()}`,

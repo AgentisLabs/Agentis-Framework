@@ -10,3 +10,5 @@ export * from './LLMTool';
 export * from './OpenRouterTool';
 export * from './VercelLLMTool';
 export * from './WebSearchTool';
+export * from './LLMService';
+export * from './providers';
