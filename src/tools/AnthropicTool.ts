@@ -23,6 +23,7 @@ export class AnthropicTool implements ITool {
         const response = await this.client.messages.create({
           model: 'claude-3-7-sonnet-20250219',
           max_tokens: 4096,
+          stream: true, // Use streaming for long responses
           messages: [{ 
             role: 'user', 
             content: `${input}\n\nProvide a direct response with the research plan, no JSON formatting needed. Focus on:
@@ -31,12 +32,20 @@ export class AnthropicTool implements ITool {
             3. Specific aspects to focus on for each team member`
           }]
         });
-
+        
+        // Handle streaming response
+        let fullContent = '';
+        for await (const chunk of response) {
+          if (chunk.type === 'content_block_delta' && 
+              chunk.delta.type === 'text_delta' && 
+              chunk.delta.text) {
+            fullContent += chunk.delta.text;
+          }
+        }
+        
         return {
-          result: response.content[0].type === 'text' 
-            ? response.content[0].text 
-            : 'No text response received',
-          raw: response
+          result: fullContent,
+          raw: null
         };
       }
 
@@ -44,14 +53,23 @@ export class AnthropicTool implements ITool {
       const response = await this.client.messages.create({
         model: 'claude-3-7-sonnet-20250219',
         max_tokens: 4096,
+        stream: true, // Use streaming for all responses
         messages: [{ role: 'user', content: input }]
       });
-
+      
+      // Handle streaming response
+      let fullContent = '';
+      for await (const chunk of response) {
+        if (chunk.type === 'content_block_delta' && 
+            chunk.delta.type === 'text_delta' && 
+            chunk.delta.text) {
+          fullContent += chunk.delta.text;
+        }
+      }
+      
       return {
-        result: response.content[0].type === 'text' 
-          ? response.content[0].text 
-          : 'No text response received',
-        raw: response
+        result: fullContent,
+        raw: null
       };
     } catch (error) {
       return {

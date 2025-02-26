@@ -82,11 +82,18 @@ export class ReActReasoner {
         // Create the full prompt with context, tools info, and prior steps
         const fullPrompt = this.createReActPrompt(query, steps);
         
-        // Get the next reasoning step from the LLM
-        const response = await this.llmService.generateResponse([
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: fullPrompt }
-        ]);
+        // Get the next reasoning step from the LLM using streaming
+        let completionContent = '';
+        const response = await this.llmService.streamResponse(
+          [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: fullPrompt }
+          ],
+          (chunk) => {
+            completionContent += chunk;
+            // Optional: We could print streaming chunks in verbose mode
+          }
+        );
         
         // Parse the response to extract thought, action, etc.
         const step = this.parseResponse(response.content);
@@ -268,10 +275,17 @@ export class ReActReasoner {
     
     prompt += `\nBased on these steps, provide a clear and concise final answer to the original question.`;
     
-    const response = await this.llmService.generateResponse([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: prompt }
-    ]);
+    // Use streaming for potentially long responses
+    let completionContent = '';
+    const response = await this.llmService.streamResponse(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      (chunk) => {
+        completionContent += chunk;
+      }
+    );
     
     return response.content;
   }

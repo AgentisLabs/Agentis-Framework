@@ -126,10 +126,18 @@ export class StandardReasoner implements IReasoner {
 
       const systemPrompt = this.config.systemPrompt || this.getDefaultSystemPrompt();
 
-      const completion = await this.llmService.generateResponse([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: finalPrompt }
-      ]);
+      // Use streaming for large responses that might take longer than 10 minutes
+      let completionContent = '';
+      const completion = await this.llmService.streamResponse(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: finalPrompt }
+        ],
+        (chunk) => {
+          completionContent += chunk;
+          // Optional: You could log chunks or update progress here if needed
+        }
+      );
 
       await Logger.log(this.agentId, LogType.STATUS_UPDATE, {
         event: 'standard-reasoning-complete',

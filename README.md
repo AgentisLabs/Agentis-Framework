@@ -1,37 +1,39 @@
 # Agentis Framework v0.3
 
-A TypeScript framework for building sophisticated multi-agent systems with LLM integration, specializing in crypto market analysis and research.
+A TypeScript framework for building sophisticated multi-agent systems with LLM integration, optimized for serverless environments and adaptable to any domain. Build custom agent teams with specialized roles, advanced reasoning systems, and powerful tool orchestration.
 
 ## Features
 
 - 🤖 Multi-agent Collaboration System
   - Agent-to-agent communication
-  - Specialized agent roles (Market Research, Technical Analysis)
-  - Task sharing and delegation
+  - Customizable agent roles and specializations
+  - Task planning, sharing, and delegation
+  - Team composition for complex problem-solving
 
 - 🧠 Advanced Memory Management
   - Vector-based memory storage using Supabase
   - Short-term and long-term memory systems
-  - Context-aware responses
+  - Context-aware knowledge retrieval
+  - Temporal awareness for up-to-date responses
 
 - 🛠️ Modular Tool Architecture
   - Flexible LLM provider system with support for Anthropic, OpenAI, and OpenRouter
   - Advanced reasoning systems including ReAct (Reasoning + Acting)
-  - WebSearchTool with Tavily API integration
-  - AnthropicTool with Claude-3.7 integration
+  - Streamlined API integration with customizable tools
   - Advanced tool orchestration with sequential and parallel execution
-  - Extensible tool registry system
+  - Composable tool pipelines with dependency management
 
-- 🔄 Real-time Market Analysis
+- 🔄 Intelligent Processing
   - Live web search capabilities
-  - Market trend analysis
-  - Fundamental and technical analysis
+  - Data-driven analysis across domains
+  - Automated research workflows
+  - Multi-step reasoning with reflection
 
-- 💾 Persistent Storage
-  - Supabase integration
-  - Message history tracking
-  - Agent state persistence
-  - Vector-based memory storage
+- 💾 Serverless-Optimized Infrastructure
+  - Supabase integration for vector and relational storage
+  - Streaming response handling for long operations
+  - Stateless design principles
+  - High performance with low latency
 
 ## 🚀 Quick Start
 
@@ -187,6 +189,10 @@ const customKeyAgent = new Agent(
 - `WebSearchTool`: Real-time web search capabilities
 - `AnthropicTool`: Direct access to Claude models
 - `OpenRouterTool`: Access to various LLMs via OpenRouter
+- `TechnicalAnalysisTool`: Data analysis with multiple indicators
+- `CoinGeckoTool`: Cryptocurrency market data integration
+- `BirdeyeTool`: Token metrics and analytics
+- `OnChainAnalysisTool`: Blockchain data analysis
 
 ## 📚 Advanced Reasoning Systems
 
@@ -369,11 +375,12 @@ MIT License - see the [LICENSE](LICENSE) file for details
 - [x] Add sophisticated tool orchestration system with parallel execution
 - [x] Add flexible LLM provider system (Anthropic, OpenAI, OpenRouter)
 - [x] Implement ReAct reasoning for enhanced agent capabilities
-- [ ] Add more specialized market analysis tools
-- [ ] Implement sophisticated inter-agent communication patterns
-- [ ] Add automated trading capabilities
-- [ ] Enhance memory management with better context handling
+- [x] Optimize for serverless environments with streaming responses
+- [ ] Implement advanced agent team coordination patterns
+- [ ] Add more specialized domain-specific tools
+- [ ] Enhance memory management with hierarchical storage
 - [ ] Add monitoring and observability features
+- [ ] Implement agent reflection and self-improvement mechanisms
 
 ## Environment Requirements
 

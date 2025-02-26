@@ -9,7 +9,7 @@ export class VectorMemoryClient {
 
   async getMemory(agentId: string): Promise<any[]> {
     const { data, error } = await supabase
-      .from('agent_memory')
+      .from('memory_entries')
       .select('*')
       .eq('agent_id', agentId);
     
@@ -23,11 +23,12 @@ export class VectorMemoryClient {
   async saveMemory(agentId: string, content: string, embedding?: number[]): Promise<void> {
     try {
       const { error } = await supabase
-        .from('agent_memory')
+        .from('memory_entries')
         .insert([{
           agent_id: agentId,
           content,
           embedding: embedding ? embedding : null,
+          type: 'message', // Default memory type
           created_at: new Date().toISOString()
         }]);
       
@@ -63,7 +64,7 @@ export class VectorMemoryClient {
     limit: number = 5,
     threshold: number = 0.8
   ): Promise<any[]> {
-    const { data, error } = await supabase.rpc('match_memories', {
+    const { data, error } = await supabase.rpc('search_memories', {
       query_embedding: embedding,
       match_threshold: threshold,
       match_count: limit,

@@ -52,7 +52,7 @@ export class EnhancedMemoryClient {
     limit: number = 5,
     threshold: number = 0.8
   ): Promise<MemoryResult[]> {
-    const { data, error } = await supabase.rpc('match_memories', {
+    const { data, error } = await supabase.rpc('search_memories', {
       query_embedding: embedding,
       match_threshold: threshold,
       match_count: limit,
@@ -262,25 +262,34 @@ export class EnhancedMemoryClient {
     context: string;
     confidence: number;
   }> {
-    const memories = await this.searchMemories(agentId, query, {
-      limit: options.maxItems,
-      threshold: options.relevanceThreshold
-    });
+    try {
+      const memories = await this.searchMemories(agentId, query, {
+        limit: options.maxItems,
+        threshold: options.relevanceThreshold
+      });
 
-    // Filter by time window if specified
-    const filteredMemories = options.timeWindow 
-      ? memories.filter(m => 
-          Date.now() - new Date(m.created_at).getTime() < (options.timeWindow ?? Infinity)
-        )
-      : memories;
+      // Filter by time window if specified
+      const filteredMemories = options.timeWindow 
+        ? memories.filter(m => 
+            Date.now() - new Date(m.created_at).getTime() < (options.timeWindow ?? Infinity)
+          )
+        : memories;
 
-    // Generate context summary
-    const context = await this.summarizeMemories(filteredMemories);
-    
-    return {
-      relevant: filteredMemories,
-      context,
-      confidence: this.calculateConfidence(filteredMemories)
-    };
+      // Generate context summary
+      const context = await this.summarizeMemories(filteredMemories);
+      
+      return {
+        relevant: filteredMemories,
+        context,
+        confidence: this.calculateConfidence(filteredMemories)
+      };
+    } catch (error) {
+      console.error("Error getting context window:", error);
+      return {
+        relevant: [],
+        context: "Unable to retrieve relevant memories at this time.",
+        confidence: 0
+      };
+    }
   }
-} 
+}

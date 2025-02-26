@@ -57,7 +57,8 @@
     "reasoning-team": "ts-node examples/reasoning-team.ts",
     "custom-research": "ts-node examples/custom-research.ts",
     "context": "ts-node examples/context-demo.ts",
-    "demo": "ts-node examples/comprehensive-example.ts"
+    "demo": "ts-node examples/comprehensive-example.ts",
+    "crypto-team": "ts-node examples/ultimate-crypto-team.ts"
   },
   "keywords": [
     "ai",
