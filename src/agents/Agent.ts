@@ -9,12 +9,15 @@ import { MiddlewareFunction } from '../middleware/AgentMiddleware';
 import { VectorMemoryClient } from '../memory/VectorMemoryClient';
 import { ToolRegistry } from '../tools/ToolRegistry';
 import { ITool } from '../tools/ITool';
-import { AgentConfig } from './types';
+import { AgentConfig, ReasoningConfig } from './types';
 import { EnhancedMemoryClient, MemoryType, MemoryResult } from '../memory/EnhancedMemoryClient';
 import { EnhancedToolOrchestrator, ExecutionMode } from '../tools/EnhancedToolOrchestrator';
 import { GraphBuilder } from '../tools/GraphBuilder';
 import { LLMService } from '../tools/LLMService';
 import { LLMMessage } from '../tools/providers/ILLMProvider';
+import { IReasoner } from './reasoning/IReasoner';
+import { StandardReasoner } from './reasoning/StandardReasoner';
+import { ReActReasoner } from './reasoning/ReActReasoner';
 
 interface TaskError {
   message: string;
@@ -40,6 +43,8 @@ export class Agent implements IAgent {
   private taskQueue: Task[] = [];
   private isExecuting: boolean = false;
   private model: AgentConfig['model'];
+  private reasoner!: IReasoner; // Initialized in initializeReasoner()
+  private reasoningConfig: ReasoningConfig;
 
   constructor(
     id: string,
@@ -48,7 +53,8 @@ export class Agent implements IAgent {
     role: string,
     goals: string[],
     tools: ITool[] = [],
-    model?: AgentConfig['model']
+    model?: AgentConfig['model'],
+    reasoningConfig?: ReasoningConfig
   ) {
     this.id = id;
     this.name = name;
@@ -58,12 +64,13 @@ export class Agent implements IAgent {
     this.shortTermMemory = {};
     this.longTermMemory = {};
     this.tools = tools;
+    
     // Default model configuration if none provided
     this.model = model || {
       provider: 'anthropic',
       name: 'claude-3-7-sonnet-20250219',
       temperature: 0.7,
-      maxTokens: 4096
+      maxTokens: 64000
     };
 
     // Initialize the LLM service with the selected provider
@@ -74,6 +81,10 @@ export class Agent implements IAgent {
       maxTokens: this.model.maxTokens,
       apiKey: this.model.apiKey
     });
+    
+    // Set up the reasoning system based on configuration
+    this.reasoningConfig = reasoningConfig || { type: 'standard' };
+    this.initializeReasoner();
 
     // Initialize tools and memory
     this.toolRegistry = new ToolRegistry({ defaultTools: tools });
@@ -120,84 +131,53 @@ export class Agent implements IAgent {
     return this.toolOrchestrator;
   }
 
+  /**
+   * Initialize the appropriate reasoner based on the configuration
+   */
+  private initializeReasoner(): void {
+    if (this.reasoningConfig.type === 'react') {
+      this.reasoner = new ReActReasoner(
+        this.llmService,
+        this.tools,
+        this.id,
+        this.name,
+        this.lore,
+        this.role,
+        {
+          maxIterations: this.reasoningConfig.maxIterations,
+          verbose: this.reasoningConfig.verbose,
+          systemPrompt: this.reasoningConfig.systemPrompt
+        }
+      );
+    } else {
+      // Default to standard reasoning
+      this.reasoner = new StandardReasoner(
+        this.llmService,
+        this.tools,
+        this.id,
+        this.name,
+        this.lore,
+        this.role,
+        {
+          systemPrompt: this.reasoningConfig.systemPrompt
+        }
+      );
+    }
+  }
+
+  /**
+   * Receive and process a message using the configured reasoning system
+   */
   async receiveMessage(message: AgentMessage): Promise<AgentMessage> {
     await Logger.log(this.id, LogType.MESSAGE, { event: 'receiveMessage', message });
     console.log(`[${this.name}] Received message:`, message.content);
 
     try {
-      // First, determine if we need to use any tools
-      const toolPlanningPrompt = `You are ${this.name}, ${this.lore}. Your role is ${this.role}.
-        You have access to these tools: ${this.tools.map(t => `${t.name}: ${t.description}`).join('\n')}
-        
-        User message: ${message.content}
-        
-        Based on this message, should you use any tools to help answer? Respond ONLY with a JSON object in this format:
-        {
-          "useTool": boolean,
-          "toolName": string | null,
-          "reason": string
-        }
-        
-        IMPORTANT: Respond ONLY with the JSON object, no other text.`;
-
       // Initialize the LLM service if needed
       await this.llmService.initialize();
       
-      const planningResponse = await this.llmService.generateResponse([
-        {
-          role: 'system',
-          content: 'You are a JSON formatting assistant. Always respond with valid JSON only.'
-        },
-        {
-          role: 'user',
-          content: toolPlanningPrompt
-        }
-      ]);
-
-      let plan;
-      try {
-        plan = JSON.parse(planningResponse.content.trim() || '{}');
-      } catch (e) {
-        console.error('Failed to parse planning response:', planningResponse.content);
-        plan = { useTool: true, toolName: 'WebSearchTool', reason: 'Fallback to web search due to parsing error' };
-      }
-
-      let toolOutput = '';
-      if (plan.useTool) {
-        const tool = this.tools.find(t => t.name === plan.toolName);
-        if (tool) {
-          const result = await tool.execute(message.content);
-          toolOutput = result.result;
-        }
-      }
-
-      // Generate final response using tool output if available
-      const finalPrompt = `You are ${this.name}, ${this.lore}. Your role is ${this.role}.
-        ${toolOutput ? `Here is relevant information I found: ${toolOutput}` : ''}
-        
-        Please respond to: ${message.content}`;
-
-      const systemPrompt = `You are ${this.name}, a highly capable AI agent with expertise in ${this.role}. 
-${this.lore}
-
-You have access to:
-- Real-time data and analysis capabilities
-- Tavily web search for current information
-- Long-term memory storage
-
-When providing information:
-- Use Tavily web search to find current data
-- Be direct and specific
-- Make informed analyses based on available data
-- Acknowledge limitations when they exist, but don't be overly cautious
-- Current date: ${new Date().toISOString()}`;
-
-      const completion = await this.llmService.generateResponse([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: finalPrompt }
-      ]);
-
-      const responseContent = completion.content || 'I apologize, I am unable to respond at the moment.';
+      // Process the message using the configured reasoner
+      const responseContent = await this.reasoner.process(message.content);
 
       const responseMessage: AgentMessage = {
         id: `msg-${Date.now()}`,
@@ -210,7 +190,6 @@ When providing information:
       await this.saveToMemory(message.content, responseContent);
 
       return responseMessage;
-
     } catch (error) {
       console.error('Error processing message:', error);
       throw error;

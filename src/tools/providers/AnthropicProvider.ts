@@ -9,7 +9,7 @@ export class AnthropicProvider implements ILLMProvider {
   private options: ProviderOptions = {
     model: 'claude-3-7-sonnet-20250219',
     temperature: 0.7,
-    maxTokens: 4096
+    maxTokens: 64000
   };
 
   async initialize(options: ProviderOptions): Promise<void> {
@@ -42,7 +42,7 @@ export class AnthropicProvider implements ILLMProvider {
 
       const response = await this.client.messages.create({
         model: this.options.model as string,
-        max_tokens: this.options.maxTokens as number,
+        max_tokens: this.options.maxTokens || 4096,
         temperature: this.options.temperature,
         system: systemMessage,
         messages: anthropicMessages
@@ -78,7 +78,7 @@ export class AnthropicProvider implements ILLMProvider {
 
       const stream = await this.client.messages.create({
         model: this.options.model as string,
-        max_tokens: this.options.maxTokens as number, 
+        max_tokens: this.options.maxTokens || 4096, 
         temperature: this.options.temperature,
         system: systemMessage,
         messages: anthropicMessages,

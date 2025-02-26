@@ -16,6 +16,7 @@ A TypeScript framework for building sophisticated multi-agent systems with LLM i
 
 - 🛠️ Modular Tool Architecture
   - Flexible LLM provider system with support for Anthropic, OpenAI, and OpenRouter
+  - Advanced reasoning systems including ReAct (Reasoning + Acting)
   - WebSearchTool with Tavily API integration
   - AnthropicTool with Claude-3.7 integration
   - Advanced tool orchestration with sequential and parallel execution
@@ -187,6 +188,64 @@ const customKeyAgent = new Agent(
 - `AnthropicTool`: Direct access to Claude models
 - `OpenRouterTool`: Access to various LLMs via OpenRouter
 
+## 📚 Advanced Reasoning Systems
+
+Agentis now supports different reasoning systems for agents, allowing you to choose the best approach for each task:
+
+### ReAct Reasoning
+
+ReAct (Reasoning + Acting) combines step-by-step reasoning with tool use, enabling more sophisticated problem-solving:
+
+```typescript
+// Create an agent with ReAct reasoning
+const reactAgent = new Agent(
+  'react-agent',
+  'ReActAgent',
+  'I am a thoughtful agent who reasons step-by-step',
+  'Reasoning Specialist',
+  ['Break down problems', 'Use tools effectively'],
+  [new WebSearchTool(), new AnthropicTool()],
+  {
+    provider: 'anthropic',
+    name: 'claude-3-7-sonnet-20250219',
+    temperature: 0.7
+  },
+  {
+    type: 'react',         // Enable ReAct reasoning
+    maxIterations: 5,      // Max reasoning steps (default: 5)
+    verbose: true,         // Log reasoning steps (default: false)
+    systemPrompt: 'Optional custom system prompt'
+  }
+);
+```
+
+Benefits of ReAct reasoning:
+- Better handling of complex, multi-step problems
+- Transparent reasoning process showing each step
+- More effective tool use through explicit planning
+- Improved ability to catch and correct errors mid-reasoning
+
+### Standard Reasoning
+
+For simpler tasks or when speed is a priority, standard reasoning provides direct responses:
+
+```typescript
+// Create an agent with standard reasoning (default)
+const standardAgent = new Agent(
+  'standard-agent',
+  'StandardAgent',
+  'I provide direct, concise answers',
+  'General Assistant',
+  ['Answer questions', 'Provide information'],
+  [new WebSearchTool()],
+  { provider: 'anthropic', name: 'claude-3-7-sonnet-20250219' },
+  { 
+    type: 'standard',
+    systemPrompt: 'Optional custom system prompt'
+  }
+);
+```
+
 ## 📚 Creating Multi-Agent Research Teams
 
 Agentis excels at creating specialized agent teams that can collaborate on complex tasks:
@@ -194,7 +253,7 @@ Agentis excels at creating specialized agent teams that can collaborate on compl
 ```typescript
 // Create a research team with specialized roles
 const researchTeam = {
-  // Coordinator using Anthropic's Claude
+  // Coordinator using Anthropic's Claude with ReAct reasoning
   coordinator: new Agent(
     'research-coordinator',
     'ResearchCoordinator',
@@ -202,10 +261,11 @@ const researchTeam = {
     'Research Coordinator',
     ['Plan research', 'Synthesize findings'],
     [new AnthropicTool()],
-    { provider: 'anthropic', name: 'claude-3-7-sonnet-20250219' }
+    { provider: 'anthropic', name: 'claude-3-7-sonnet-20250219' },
+    { type: 'react', maxIterations: 5 }  // Use ReAct for complex planning
   ),
   
-  // Web researcher using OpenAI
+  // Web researcher using OpenAI with standard reasoning
   webResearcher: new Agent(
     'web-researcher',
     'WebResearcher',
@@ -213,10 +273,11 @@ const researchTeam = {
     'Web Research Specialist',
     ['Find information', 'Verify facts'],
     [new WebSearchTool()],
-    { provider: 'openai', name: 'gpt-4o' }
+    { provider: 'openai', name: 'gpt-4o' },
+    { type: 'standard' }  // Use standard reasoning for simpler tasks
   ),
   
-  // Analyst using OpenRouter
+  // Analyst using OpenRouter with ReAct reasoning
   analyst: new Agent(
     'analyst',
     'DataAnalyst',
@@ -224,7 +285,8 @@ const researchTeam = {
     'Analysis Specialist',
     ['Analyze data', 'Identify patterns'],
     [new AnthropicTool()],
-    { provider: 'openrouter', name: 'anthropic/claude-3-opus-20240229' }
+    { provider: 'openrouter', name: 'anthropic/claude-3-opus-20240229' },
+    { type: 'react', verbose: true }  // Use ReAct with logging
   )
 };
 
@@ -232,31 +294,6 @@ const researchTeam = {
 const runtime = new AgentRuntime();
 Object.values(researchTeam).forEach(agent => runtime.registerAgent(agent));
 await runtime.start();
-```
-
-## 🎯 Creating Custom Agents
-
-Users can fully customize their agents' personalities, roles, and capabilities:
-
-```typescript
-import { Agent, WebSearchTool } from 'agentis';
-
-// Basic agent creation with model configuration
-const agent = new Agent(
-  'custom-agent',
-  'CustomAgent',
-  'My custom agent lore',
-  'Custom Role',
-  ['Goal 1', 'Goal 2'],
-  [new WebSearchTool()],
-  {
-    provider: 'anthropic',
-    name: 'claude-3-7-sonnet-20250219',
-    temperature: 0.7,
-    maxTokens: 4096,
-    apiKey: 'your-optional-custom-key' // Optional: provide a specific API key
-  }
-);
 ```
 
 ## 🛠️ Creating Custom Tools
@@ -331,7 +368,7 @@ MIT License - see the [LICENSE](LICENSE) file for details
 
 - [x] Add sophisticated tool orchestration system with parallel execution
 - [x] Add flexible LLM provider system (Anthropic, OpenAI, OpenRouter)
-- [ ] Implement ReAct reasoning for enhanced agent capabilities
+- [x] Implement ReAct reasoning for enhanced agent capabilities
 - [ ] Add more specialized market analysis tools
 - [ ] Implement sophisticated inter-agent communication patterns
 - [ ] Add automated trading capabilities

@@ -52,7 +52,12 @@
     "tool-orchestration": "ts-node src/tests/tool-orchestration.ts",
     "quickstart": "ts-node examples/quick-start.ts",
     "providers": "ts-node examples/provider-specific-agents.ts",
-    "research-team": "ts-node examples/research-team.ts"
+    "research-team": "ts-node examples/research-team.ts",
+    "react": "ts-node examples/react-reasoning.ts",
+    "reasoning-team": "ts-node examples/reasoning-team.ts",
+    "custom-research": "ts-node examples/custom-research.ts",
+    "context": "ts-node examples/context-demo.ts",
+    "demo": "ts-node examples/comprehensive-example.ts"
   },
   "keywords": [
     "ai",

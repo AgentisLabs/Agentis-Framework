@@ -40,3 +40,6 @@ export * from './tools/VercelLLMTool';
 export * from './memory/EnhancedMemoryClient';
 export * from './memory/MemoryClient';
 export * from './memory/VectorMemoryClient'; 
+
+// Export context provider
+export * from './context/GlobalContext';

@@ -27,7 +27,7 @@ export class WebSearchTool implements ITool {
         max_results: 5,
         include_answer: true,
         include_images: false,
-        include_raw_content: false
+        include_raw_content: true
       }, {
         headers: {
           'Content-Type': 'application/json',
